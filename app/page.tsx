@@ -21,7 +21,7 @@ const news = [
 // Mini galería ubicada junto a la sección "Sigamos conectados".
 // Estas fotografías son muestras distintas de las portadas usadas en "Nuestra galería".
 const communityGallery = [
-  { image: `${publicPath}/gallery/voleibol-2026/20260611_134330.jpg`, alt: 'Estudiantes y docentes reunidos durante el campeonato de voleibol' },
+  { image: `${publicPath}/gallery/fiesta-de-la-chilenidad/equipo/DSC_1042.JPG`, alt: 'Presentación de baile durante la Fiesta de la Chilenidad' },
   { image: `${publicPath}/gallery/ajedrez-2026/ajedrez-10.jpg`, alt: 'Estudiantes participando en una actividad de ajedrez' },
   { image: `${publicPath}/gallery/dia-del-libro/20260422_130030.jpg`, alt: 'Celebración escolar del Día del Libro' },
 ];
