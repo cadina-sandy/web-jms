@@ -6,16 +6,16 @@ const inter = Inter({ variable: '--font-sans', subsets: ['latin'] });
 const lora = Lora({ variable: '--font-serif', subsets: ['latin'], style: ['italic'] });
 
 export const metadata: Metadata = {
-  title: 'Colegio JMS | Educando para el futuro',
-  description: 'Colegio JMS: una comunidad educativa que forma estudiantes integrales, curiosos y comprometidos con su futuro.',
+  title: 'Colegio Julio Montt Salamanca | Preparado para la vida',
+  description: 'Colegio Julio Montt Salamanca de Macul: 64 años entregando una educación integral, laica e inclusiva.',
   openGraph: {
-    title: 'Colegio JMS | Educando para el futuro',
-    description: 'Aprender, crecer y transformar en una comunidad educativa comprometida.',
+    title: 'Colegio Julio Montt Salamanca | Preparado para la vida',
+    description: '64 años de trayectoria formando estudiantes en una comunidad educativa integral e inclusiva.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Colegio JMS | Educando para el futuro',
-    description: 'Aprender, crecer y transformar en una comunidad educativa comprometida.',
+    title: 'Colegio Julio Montt Salamanca | Preparado para la vida',
+    description: '64 años de trayectoria formando estudiantes en una comunidad educativa integral e inclusiva.',
   },
 };
 
