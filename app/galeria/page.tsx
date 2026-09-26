@@ -6,8 +6,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
-const photos: { src: string; category: string; alt: string }[] = [
+const categories = ['Todas', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const photos: { src: string; category: string; alt: string; video?: string }[] = [
   {
     "src": "/gallery/ajedrez-2026/ajedrez-01.png",
     "category": "Campeonato de Ajedrez 2026",
@@ -1972,11 +1972,44 @@ const photos: { src: string; category: string; alt: string }[] = [
     "src": "/gallery/fiesta-de-la-chilenidad/b/8/DSC_1110.JPG",
     "category": "Fiesta de la Chilenidad",
     "alt": "Estudiante de octavo B posa con sombrero negro y traje con detalles rosados"
-  }
+  },
+{"src": "/gallery/cuecazo/20260902_140231.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140332.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_141749.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_145213.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_095006.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_095446.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_095507.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_095830.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_103755.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_103800.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_103808.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_104138.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_105622.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_103932.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_110518.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140046.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140151.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140751.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140755.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140759.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140938.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_140836.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_141403.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_141619.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_144546.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_145633.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_094957.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_150305.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_095133.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_150312.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_125613.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src": "/gallery/cuecazo/20260902_150312.jpg", "category": "Cuecazo", "alt": "Video del Cuecazo", "video": "/gallery/cuecazo/20260902_150318.mp4"}
 ];
 function Gallery() {
   const [category, setCategory] = useState('Todas');
   const [selected, setSelected] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [folder, setFolder] = useState<string[]>([]);
   const [showFolders, setShowFolders] = useState(false);
   const [failed, setFailed] = useState<string[]>([]);
@@ -2000,7 +2033,7 @@ function Gallery() {
   const openFolder = (path: string[]) => { setFolder(path); setSelected(0); };
   const photo = visible[selected];
   const move = (direction: number) => setSelected(value => (value + direction + visible.length) % visible.length);
-  const close = () => dialog.current?.close();
+  const close = () => { setViewerOpen(false); dialog.current?.close(); };
   return <main className="gallery-page" id="galeria">
     <header className="gallery-header"><a className="gallery-brand" href="#galeria"><img src={`${basePath}/logo-jms.png`} alt="Escudo de la Escuela Julio Montt Salamanca" /><span><strong>Escuela Julio Montt Salamanca</strong><small>Macul · Chile</small></span></a><span className="gallery-header-label">Nuestra comunidad en imágenes</span><a className="gallery-instagram" href="https://www.instagram.com/escuelajmsmacul/" target="_blank" rel="noreferrer">Instagram ↗</a></header>
     <section className="gallery-intro" aria-labelledby="gallery-title"><div><p className="gallery-kicker">GALERÍA · ESCUELA JULIO MONTT SALAMANCA</p><h1 id="gallery-title">Pequeños momentos.<br /><em>Grandes recuerdos.</em></h1></div><p>Un recorrido por el aprendizaje y la vida en comunidad.</p></section>
@@ -2012,11 +2045,11 @@ function Gallery() {
       {isChilenidad && folder.length > 0 && <button className="gallery-back" onClick={() => openFolder(folder.slice(0, -1))}>← Volver a las carpetas</button>}
       {browsingFolders && <div className="gallery-folders">{folders.map(name => <button className="gallery-folder" key={name} onClick={() => openFolder([...folder, name])} aria-label={`Abrir carpeta ${folderLabel(name, folder[0])}`}><svg width="52" height="44" viewBox="0 0 52 44" fill="none" aria-hidden="true"><path d="M3 12V7a4 4 0 0 1 4-4h12l6 7h20a4 4 0 0 1 4 4v23a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V12Z" fill="currentColor"/><path d="M3 15h46" stroke="white" strokeOpacity=".5" strokeWidth="2"/></svg><strong>{folderLabel(name, folder[0])}</strong><span aria-hidden="true">→</span></button>)}</div>}
       <div id={showFolders ? undefined : "gallery-overview"} hidden={category === 'Todas' && showFolders} className="gallery-grid gallery-collage" key={`${category}/${folder.join('/')}`}>
-{visible.map((item, index) => <button className="gallery-card" key={item.src} style={{ animationDelay: `${Math.min(index, 9) * 65}ms` }} onClick={() => { setSelected(index); dialog.current?.showModal(); }} aria-label={`Ampliar: ${item.alt}`}><div className="gallery-image gallery-image-original">{failed.includes(item.src) ? <span className="gallery-unavailable">Imagen no disponible</span> : <img src={`${basePath}${item.src}`} alt={item.alt} loading={index < 2 ? 'eager' : 'lazy'} onError={() => setFailed(values => [...values, item.src])} />}<span className="gallery-expand" aria-hidden="true">↗</span></div></button>)}</div>
+{visible.map((item, index) => <button className="gallery-card" key={item.video || item.src} style={{ animationDelay: `${Math.min(index, 9) * 65}ms` }} onClick={() => { setSelected(index); setViewerOpen(true); dialog.current?.showModal(); }} aria-label={`${item.video ? "Reproducir" : "Ampliar"}: ${item.alt}`}><div className="gallery-image gallery-image-original">{failed.includes(item.src) ? <span className="gallery-unavailable">Imagen no disponible</span> : <img src={`${basePath}${item.src}`} alt={item.alt} loading={index < 2 ? 'eager' : 'lazy'} onError={() => setFailed(values => [...values, item.src])} />}<span className="gallery-expand" aria-hidden="true">{item.video ? "▶" : "↗"}</span></div></button>)}</div>
       <p className="gallery-reference" role="status">{browsingFolders ? 'Elige una carpeta para ver sus fotografías.' : visible.length === 0 ? `Próximamente: fotografías ${category === 'Todas' ? 'de nuestras actividades' : `de ${category}`}.` : 'Momentos de nuestra comunidad.'}</p>
     </section>
     <footer className="gallery-footer"><span>Escuela Julio Montt Salamanca</span><span>Educando para el futuro.</span><a href="#galeria">Volver arriba ↑</a></footer>
-    {photo && <dialog ref={dialog} className="gallery-dialog" aria-labelledby="photo-title" onClick={event => { if (event.target === event.currentTarget) close(); }} onKeyDown={event => { if (event.key === 'ArrowRight') { event.preventDefault(); move(1); } if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1); } }}><button className="gallery-close" onClick={close} aria-label="Cerrar imagen" autoFocus>×</button><div className="gallery-viewer"><div className="gallery-full-image" key={photo.src}>{failed.includes(photo.src) ? <p>Esta imagen no está disponible en este momento.</p> : <img src={`${basePath}${photo.src}`} alt={photo.alt} onError={() => setFailed(values => [...values, photo.src])} />}</div><div className="gallery-viewer-bar"><h2 id="photo-title">{photo.category}</h2><div className="gallery-viewer-controls"><button onClick={() => move(-1)} aria-label="Imagen anterior">←</button><button onClick={() => move(1)} aria-label="Imagen siguiente">→</button></div></div></div></dialog>}
+    {photo && <dialog ref={dialog} className="gallery-dialog" onClose={() => setViewerOpen(false)} aria-labelledby="photo-title" onClick={event => { if (event.target === event.currentTarget) close(); }} onKeyDown={event => { if (event.key === 'ArrowRight') { event.preventDefault(); move(1); } if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1); } }}><button className="gallery-close" onClick={close} aria-label="Cerrar imagen" autoFocus>×</button><div className="gallery-viewer"><div className="gallery-full-image" key={photo.video || photo.src}>{photo.video ? (viewerOpen && <video controls playsInline preload="metadata" src={`${basePath}${photo.video}`} poster={`${basePath}${photo.src}`} aria-label={photo.alt} />) : failed.includes(photo.src) ? <p>Esta imagen no está disponible en este momento.</p> : <img src={`${basePath}${photo.src}`} alt={photo.alt} onError={() => setFailed(values => [...values, photo.src])} />}</div><div className="gallery-viewer-bar"><h2 id="photo-title">{photo.category}</h2><div className="gallery-viewer-controls"><button onClick={() => move(-1)} aria-label="Imagen anterior">←</button><button onClick={() => move(1)} aria-label="Imagen siguiente">→</button></div></div></div></dialog>}
   </main>;
 }
 export default Gallery;
