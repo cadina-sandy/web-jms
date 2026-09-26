@@ -2004,6 +2004,9 @@ const photos: { src: string; category: string; alt: string; video?: string }[] =
 {"src": "/gallery/cuecazo/20260902_095133.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
 {"src": "/gallery/cuecazo/20260902_150312.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
 {"src": "/gallery/cuecazo/20260902_125613.jpg", "category": "Cuecazo", "alt": "Celebración del Cuecazo en la Escuela Julio Montt Salamanca"},
+{"src":"/gallery/cuecazo/20260902_094913.jpg","category":"Cuecazo","alt":"Estudiantes con vestimenta tradicional junto a una mesa en el patio"},
+{"src":"/gallery/cuecazo/20260902_094859.jpg","category":"Cuecazo","alt":"Comunidad escolar compartiendo en el patio durante el Cuecazo"},
+{"src":"/gallery/cuecazo/20260902_151005.jpg","category":"Cuecazo","alt":"Dos estudiantes con vestidos de cueca en la escuela"},
 {"src": "/gallery/cuecazo/20260902_150312.jpg", "category": "Cuecazo", "alt": "Video del Cuecazo", "video": "/gallery/cuecazo/20260902_150318.mp4"}
 ];
 function Gallery() {
