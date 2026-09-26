@@ -6,8 +6,13 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const categories = ['Todas', 'Teatro con el 5°', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
 const photos: { src: string; category: string; alt: string; video?: string }[] = [
+{"src":"/gallery/teatro-5/20260825_104942.jpg","category":"Teatro con el 5°","alt":"Entrada del Teatro UC"},
+{"src":"/gallery/teatro-5/20260825_105019.jpg","category":"Teatro con el 5°","alt":"Estudiantes de quinto en su visita al Teatro UC"},
+{"src":"/gallery/teatro-5/20260825_105023.jpg","category":"Teatro con el 5°","alt":"Estudiantes de quinto en su visita al Teatro UC"},
+{"src":"/gallery/teatro-5/20260825_105039.jpg","category":"Teatro con el 5°","alt":"Estudiantes de quinto en su visita al Teatro UC"},
+{"src":"/gallery/teatro-5/20260825_105311.jpg","category":"Teatro con el 5°","alt":"Afiche de El Niño de los Fósiles en el Teatro UC"},
   {
     "src": "/gallery/ajedrez-2026/ajedrez-01.png",
     "category": "Campeonato de Ajedrez 2026",
