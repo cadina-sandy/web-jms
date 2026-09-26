@@ -6,8 +6,22 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'Teatro con el 5°', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const categories = ['Todas', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
 const photos: { src: string; category: string; alt: string; video?: string }[] = [
+{"src":"/gallery/english-festival-2026/20260730_110317.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_110843.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_100159.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_105553.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_105714.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_101804.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_110323.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"English festival 2026 — video 1","video":"/gallery/english-festival-2026/20260730_103004.mp4"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"English festival 2026 — video 2","video":"/gallery/english-festival-2026/20260730_103504.mp4"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"English festival 2026 — video 3","video":"/gallery/english-festival-2026/20260730_104452.mp4"},
+{"src":"/gallery/english-festival-2026/20260730_110843.jpg","category":"English festival 2026","alt":"English festival 2026 — video 4","video":"/gallery/english-festival-2026/20260730_110849.mp4"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"English festival 2026 — video 5","video":"/gallery/english-festival-2026/20260730_111230.mp4"},
+{"src":"/gallery/english-festival-2026/20260730_101736.jpg","category":"English festival 2026","alt":"English festival 2026 — video 6","video":"/gallery/english-festival-2026/20260730_111955.mp4"},
 {"src":"/gallery/teatro-5/20260825_104942.jpg","category":"Teatro con el 5°","alt":"Entrada del Teatro UC"},
 {"src":"/gallery/teatro-5/20260825_105019.jpg","category":"Teatro con el 5°","alt":"Estudiantes de quinto en su visita al Teatro UC"},
 {"src":"/gallery/teatro-5/20260825_105023.jpg","category":"Teatro con el 5°","alt":"Estudiantes de quinto en su visita al Teatro UC"},
