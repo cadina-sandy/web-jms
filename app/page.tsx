@@ -19,10 +19,11 @@ const news = [
 ];
 
 // Mini galería ubicada junto a la sección "Sigamos conectados".
+// Estas fotografías son muestras distintas de las portadas usadas en "Nuestra galería".
 const communityGallery = [
-  { image: slides[2].image, alt: 'Estudiantes compartiendo durante una actividad escolar' },
-  { image: slides[1].image, alt: 'Estudiantes participando en una clase' },
-  { image: slides[0].image, alt: 'Comunidad educativa reunida en la escuela' },
+  { image: `${publicPath}/gallery/dia-del-sindrome-de-down/20260320_093525.jpg`, alt: 'Actividad de la comunidad escolar por el Día del Síndrome de Down' },
+  { image: `${publicPath}/gallery/ajedrez-2026/ajedrez-10.jpg`, alt: 'Estudiantes participando en una actividad de ajedrez' },
+  { image: `${publicPath}/gallery/dia-del-libro/20260422_130030.jpg`, alt: 'Celebración escolar del Día del Libro' },
 ];
 
 // Portadas de "Nuestra galería" tomadas de cinco secciones reales de /galeria/.
@@ -82,7 +83,8 @@ export default function Home() {
 
     <section className="gallery-section section" id="galeria"><div className="shell"><div className="gallery-heading"><div><p className="section-kicker">NUESTRA GALERÍA</p><h2>Momentos que construyen<br/><em>nuestra historia.</em></h2></div><p>Una selección de nuestras actividades. Abre la galería completa para conocer todos los registros.</p></div><div className="gallery-grid">{galleryAlbums.map((album,index)=><figure key={album.subtitle} className={`gallery-item gallery-item-${index+1}`}><a className="gallery-open" href={`${publicPath}/galeria/`} target="_blank" rel="noreferrer" aria-label={`Abrir galería completa desde ${album.subtitle}`}><img src={album.cover} alt={`Portada de ${album.subtitle}`}/><figcaption><small>{album.title}</small><strong>{album.subtitle}</strong><span>VER GALERÍA ↗</span></figcaption></a></figure>)}</div></div></section>
 
-    <section className="social section" id="comunidad"><div className="shell social-inner"><div className="social-copy"><p className="section-kicker light">SIGAMOS CONECTADOS</p><h2>La vida de la escuela,<br/><em>también en tus redes.</em></h2><p>Entérate de actividades, logros y momentos que hacen especial nuestra comunidad.</p><div className="social-buttons"><a href="https://www.instagram.com/escuelajmsmacul/" target="_blank" rel="noreferrer" aria-label="Instagram de la Escuela Julio Montt Salamanca">◎</a><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="YouTube">▶</a></div></div><div className="community-gallery" aria-label="Galería de la comunidad escolar">{communityGallery.map((item,index)=><figure key={item.image} className={index===0?'featured':''}><img src={item.image} alt={item.alt}/>{index===0&&<a className="admission-banner" id="admision-2027" href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer"><small>PROCESO ABIERTO</small><strong>Admisión 2027</strong><span>Conoce el proceso ↗</span></a>}</figure>)}</div></div></section>
+    {/* Comunidad: acceso a Instagram y fotografías de muestra de la galería escolar. */}
+    <section className="social section" id="comunidad"><div className="shell social-inner"><div className="social-copy"><p className="section-kicker light">SIGAMOS CONECTADOS</p><h2>La vida de la escuela,<br/><em>también en tus redes.</em></h2><p>Entérate de actividades, logros y momentos que hacen especial nuestra comunidad.</p><div className="social-buttons"><a href="https://www.instagram.com/escuelajmsmacul/" target="_blank" rel="noreferrer" aria-label="Instagram de la Escuela Julio Montt Salamanca">◎</a></div></div><div className="community-gallery" aria-label="Galería de la comunidad escolar">{communityGallery.map((item,index)=><figure key={item.image} className={index===0?'featured':''}><img src={item.image} alt={item.alt}/></figure>)}</div></div></section>
 
     <section className="location section" id="contacto"><div className="shell location-grid"><div><p className="section-kicker">ENCUÉNTRANOS</p><h2>Ven a <em>conocernos.</em></h2><p>Te esperamos en Macul para que conozcas nuestra escuela y el proyecto educativo que hemos construido durante 64 años.</p><dl><div><dt>DIRECCIÓN</dt><dd>Pedro Prado 4375<br/>Macul, Santiago</dd></div></dl><a className="hero-btn dark" href="https://www.google.com/maps/search/?api=1&query=Pedro+Prado+4375%2C+Macul%2C+Santiago" target="_blank" rel="noreferrer">CÓMO LLEGAR <span>↗</span></a></div><div className="map-card"><iframe title="Ubicación de la Escuela Julio Montt Salamanca" src="https://www.openstreetmap.org/export/embed.html?bbox=-70.62%2C-33.51%2C-70.55%2C-33.46&amp;layer=mapnik" loading="lazy"/><div className="map-label"><img src={`${publicPath}/logo-jms.png`} alt=""/><span><strong>Escuela Julio Montt Salamanca</strong>Pedro Prado 4375, Macul</span></div></div></div></section>
 
