@@ -4,24 +4,28 @@ import { useEffect, useState } from 'react';
 
 const publicPath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
+// Carrusel principal: banner de admisión y mensajes destacados.
 const slides = [
   { image: `${publicPath}/admision-2027-banner.png`, eyebrow: 'Proceso de admisión', title: 'Admisión escolar 2027', text: 'Infórmate y realiza tu postulación en el Sistema de Admisión Escolar.', action: 'Admisiones 2027', href: 'https://www.sistemadeadmisionescolar.cl/', external: true, admission: true },
   { image: 'https://www.uc.cl/site/assets/files/25026/escolares-sala-clases.jpg', eyebrow: 'Excelencia académica', title: 'Cada talento encuentra su camino', text: 'Acompañamiento cercano, altas expectativas y oportunidades para descubrir nuevas capacidades.', action: 'Ver resultados', href: '#resultados' },
   { image: 'https://portaluchile.uchile.cl/dam/jcr%3A669ccedf-6450-4fad-bb89-46f4872922f2/Ciae-03-L.jpg', eyebrow: 'Vida escolar', title: 'Una comunidad que inspira', text: 'Convivencia, deporte, arte y aprendizaje se encuentran todos los días en nuestro colegio.', action: 'Descubre más', href: '#comunidad' },
 ];
 
+// Noticias y fechas mostradas en la página de inicio.
 const news = [
   { day: '18', month: 'MAR', tag: 'COMUNIDAD', title: 'Inicio de talleres extracurriculares 2026' },
   { day: '24', month: 'MAR', tag: 'ACADÉMICO', title: 'Primera reunión de apoderados del año' },
   { day: '05', month: 'ABR', tag: 'DEPORTE', title: 'Encuentro deportivo interescolar' },
 ];
 
+// Mini galería ubicada junto a la sección "Sigamos conectados".
 const communityGallery = [
   { image: slides[2].image, alt: 'Estudiantes compartiendo durante una actividad escolar' },
   { image: slides[1].image, alt: 'Estudiantes participando en una clase' },
   { image: slides[0].image, alt: 'Comunidad educativa reunida en el colegio' },
 ];
 
+// Portadas y fotografías de los álbumes de la galería principal.
 const galleryAlbums = [
   { title: 'Comunidad', subtitle: 'Vida en comunidad', cover: slides[2].image, photos: [slides[2].image, slides[0].image, 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', slides[1].image] },
   { title: 'Aula', subtitle: 'Aprendizaje activo', cover: slides[1].image, photos: [slides[1].image, 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', slides[0].image] },
@@ -55,8 +59,18 @@ export default function Home() {
     setActivePhoto((value) => (value + direction + total) % total);
   };
 
+  // Estructura de la página, en orden:
+  // 1. Barra superior y encabezado.
+  // 2. Banner principal y accesos rápidos.
+  // 3. Nuestro colegio, misión, visión y trayectoria.
+  // 4. Resultados académicos y noticias.
+  // 5. Galería, comunidad y acceso a Admisión 2027.
+  // 6. Ubicación, pie de página y visor ampliado de fotografías.
   return <main>
+    {/* Barra institucional superior: valores y ubicación. */}
     <div className="topbar"><div className="shell topbar-inner"><span>Respeto, esfuerzo y resiliencia</span><div><span>Pedro Prado 4375</span><i/><span>Macul, Santiago</span></div></div></div>
+
+    {/* Encabezado principal: logo, navegación y acceso a Admisión 2027. */}
     <header className="site-header"><div className="shell nav-wrap">
       <a className="brand" href="#inicio" aria-label="Colegio Julio Montt Salamanca, ir al inicio"><img src={`${publicPath}/logo-jms.png`} alt="Escudo del Colegio Julio Montt Salamanca"/><span><strong>Colegio Julio Montt<br/>Salamanca</strong><small>Preparado para la vida</small></span></a>
       <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label="Abrir menú">{menuOpen ? '×' : '☰'}</button>
@@ -67,11 +81,13 @@ export default function Home() {
       </nav><a className="admission-btn" href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer">Admisión 2027 <span>↗</span></a>
     </div></header>
 
+    {/* Banner principal y carrusel de contenidos destacados. */}
     <section className="hero" id="inicio" aria-label="Información destacada">
       {slides.map((slide,index)=><article className={`slide ${slide.admission?'admission-slide':''} ${index===current?'active':''}`} key={slide.title} aria-hidden={index!==current}><img src={slide.image} alt={slide.admission?'Banner de Admisión 2027':'Estudiantes participando en una jornada escolar'}/><div className="hero-overlay"/><div className="shell hero-content"><div className="eyebrow"><span/>{slide.eyebrow}</div>{!slide.admission&&<><h1>{slide.title}</h1><p>{slide.text}</p></>}<a className="hero-btn" href={slide.href} target={slide.external?'_blank':undefined} rel={slide.external?'noreferrer':undefined}>{slide.action} <span>↗</span></a></div></article>)}
       <div className="shell hero-controls"><button onClick={()=>move(-1)} aria-label="Imagen anterior">←</button><div className="dots">{slides.map((slide,index)=><button key={slide.title} className={index===current?'active':''} onClick={()=>setCurrent(index)} aria-label={`Ver imagen ${index+1}`}/>)}</div><button onClick={()=>move(1)} aria-label="Imagen siguiente">→</button></div><div className="scroll-note"><span/> DESCUBRE MÁS</div>
     </section>
 
+    {/* Accesos rápidos: calendario, resultados y admisión. */}
     <section className="quick-links" aria-label="Accesos rápidos"><div className="shell quick-grid">
       <a href="#noticias"><b>01</b><span><small>REVISA NUESTRO</small>Calendario escolar</span><i>→</i></a><a href="#resultados"><b>02</b><span><small>CONOCE NUESTROS</small>Resultados SIMCE</span><i>→</i></a><a href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer"><b>03</b><span><small>INFORMACIÓN DE</small>Admisión y matrícula</span><i>↗</i></a>
     </div></section>
