@@ -25,39 +25,21 @@ const communityGallery = [
   { image: slides[0].image, alt: 'Comunidad educativa reunida en el colegio' },
 ];
 
-// Portadas y fotografías de los álbumes de la galería principal.
+// Portadas de "Nuestra galería" tomadas de cinco secciones reales de /galeria/.
+// Cada portada dirige a la galería completa en una pestaña nueva.
 const galleryAlbums = [
-  { title: 'Comunidad', subtitle: 'Vida en comunidad', cover: slides[2].image, photos: [slides[2].image, slides[0].image, 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', slides[1].image] },
-  { title: 'Aula', subtitle: 'Aprendizaje activo', cover: slides[1].image, photos: [slides[1].image, 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', slides[0].image] },
-  { title: 'Aprendizaje', subtitle: 'Nuevos desafíos', cover: 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', photos: ['https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg', slides[1].image, slides[2].image] },
-  { title: 'Colegio', subtitle: 'Encuentros escolares', cover: slides[0].image, photos: [slides[0].image, slides[2].image, slides[1].image, 'https://berkeleyjournal.org/files/2022/06/21-1024x637.jpeg'] },
-  { title: 'Talleres', subtitle: 'Talento y creatividad', cover: 'https://www.uc.cl/site/assets/files/25026/escolares-sala-clases.jpg', photos: ['https://www.uc.cl/site/assets/files/25026/escolares-sala-clases.jpg', slides[2].image, slides[0].image] },
+  { title: 'Deporte', subtitle: 'Campeonato de Voleibol 2026', cover: `${publicPath}/gallery/voleibol-2026/20260611_133801.jpg` },
+  { title: 'Deporte', subtitle: 'Campeonato de Ajedrez 2026', cover: `${publicPath}/gallery/ajedrez-2026/ajedrez-06.jpg` },
+  { title: 'Lectura', subtitle: 'Día del Libro', cover: `${publicPath}/gallery/dia-del-libro/20260422_121716.jpg` },
+  { title: 'Comunidad', subtitle: 'Vista a Bomberos', cover: `${publicPath}/gallery/bomberos/bombero-1.png` },
+  { title: 'Inclusión', subtitle: 'Día del Autismo', cover: `${publicPath}/gallery/dia-del-autismo/20260410_092723.jpg` },
 ];
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeAlbum, setActiveAlbum] = useState<number | null>(null);
-  const [activePhoto, setActivePhoto] = useState(0);
   useEffect(() => { const timer = window.setInterval(() => setCurrent((value) => (value + 1) % slides.length), 6000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => {
-    if (activeAlbum === null) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActiveAlbum(null);
-      if (event.key === 'ArrowLeft') setActivePhoto((value) => (value - 1 + galleryAlbums[activeAlbum].photos.length) % galleryAlbums[activeAlbum].photos.length);
-      if (event.key === 'ArrowRight') setActivePhoto((value) => (value + 1) % galleryAlbums[activeAlbum].photos.length);
-    };
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKeyDown);
-    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKeyDown); };
-  }, [activeAlbum]);
   const move = (direction: number) => setCurrent((value) => (value + direction + slides.length) % slides.length);
-  const openAlbum = (index: number) => { setActiveAlbum(index); setActivePhoto(0); };
-  const movePhoto = (direction: number) => {
-    if (activeAlbum === null) return;
-    const total = galleryAlbums[activeAlbum].photos.length;
-    setActivePhoto((value) => (value + direction + total) % total);
-  };
 
   // Estructura de la página, en orden:
   // 1. Barra superior y encabezado.
@@ -98,7 +80,7 @@ export default function Home() {
 
     <section className="news section" id="noticias"><div className="shell"><div className="section-title-row"><div><p className="section-kicker">ACTUALIDAD</p><h2>Noticias y <em>próximas fechas</em></h2></div><a className="text-link" href="#noticias">VER TODAS <span>→</span></a></div><div className="news-list">{news.map(item=><article key={item.title}><time><strong>{item.day}</strong><span>{item.month}</span></time><div><small>{item.tag}</small><h3>{item.title}</h3></div><button aria-label={`Leer ${item.title}`}>↗</button></article>)}</div></div></section>
 
-    <section className="gallery-section section" id="galeria"><div className="shell"><div className="gallery-heading"><div><p className="section-kicker">NUESTRA GALERÍA</p><h2>Momentos que construyen<br/><em>nuestra historia.</em></h2></div><p>Selecciona una portada para recorrer todas las fotografías de cada experiencia.</p></div><div className="gallery-grid">{galleryAlbums.map((album,index)=><figure key={album.title} className={`gallery-item gallery-item-${index+1}`}><button className="gallery-open" onClick={()=>openAlbum(index)} aria-label={`Abrir álbum ${album.title}: ${album.subtitle}`}><img src={album.cover} alt={`Portada del álbum ${album.title}`}/><figcaption><small>{album.title}</small><strong>{album.subtitle}</strong><span>VER GALERÍA ↗</span></figcaption></button></figure>)}</div></div></section>
+    <section className="gallery-section section" id="galeria"><div className="shell"><div className="gallery-heading"><div><p className="section-kicker">NUESTRA GALERÍA</p><h2>Momentos que construyen<br/><em>nuestra historia.</em></h2></div><p>Una selección de nuestras actividades. Abre la galería completa para conocer todos los registros.</p></div><div className="gallery-grid">{galleryAlbums.map((album,index)=><figure key={album.subtitle} className={`gallery-item gallery-item-${index+1}`}><a className="gallery-open" href={`${publicPath}/galeria/`} target="_blank" rel="noreferrer" aria-label={`Abrir galería completa desde ${album.subtitle}`}><img src={album.cover} alt={`Portada de ${album.subtitle}`}/><figcaption><small>{album.title}</small><strong>{album.subtitle}</strong><span>VER GALERÍA ↗</span></figcaption></a></figure>)}</div></div></section>
 
     <section className="social section" id="comunidad"><div className="shell social-inner"><div className="social-copy"><p className="section-kicker light">SIGAMOS CONECTADOS</p><h2>La vida del colegio,<br/><em>también en tus redes.</em></h2><p>Entérate de actividades, logros y momentos que hacen especial nuestra comunidad.</p><div className="social-buttons"><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="YouTube">▶</a></div></div><div className="community-gallery" aria-label="Galería de la comunidad escolar">{communityGallery.map((item,index)=><figure key={item.image} className={index===0?'featured':''}><img src={item.image} alt={item.alt}/>{index===0&&<a className="admission-banner" id="admision-2027" href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer"><small>PROCESO ABIERTO</small><strong>Admisión 2027</strong><span>Conoce el proceso ↗</span></a>}</figure>)}</div></div></section>
 
@@ -106,6 +88,5 @@ export default function Home() {
 
     <footer><div className="shell footer-main"><div className="brand footer-brand"><img src={`${publicPath}/logo-jms.png`} alt="Escudo del Colegio Julio Montt Salamanca"/><span><strong>Colegio Julio Montt<br/>Salamanca</strong><small>Preparado para la vida</small></span></div><div><h3>COLEGIO</h3><a href="#mision">Misión y visión</a><a href="#resultados">Resultados académicos</a><a href="#noticias">Noticias</a></div><div><h3>INFORMACIÓN</h3><a href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer">Admisión 2027</a><a href="#galeria">Galería</a><a href="#contacto">Ubicación</a></div><div className="footer-cta"><h3>VISÍTANOS</h3><p>Pedro Prado 4375<br/>Macul, Santiago</p><a href="#contacto">VER UBICACIÓN →</a></div></div><div className="shell copyright"><span>© 2026 Colegio Julio Montt Salamanca. Todos los derechos reservados.</span><span>Macul · Santiago</span></div></footer>
 
-    {activeAlbum!==null&&<div className="gallery-modal" role="dialog" aria-modal="true" aria-label={`Galería ${galleryAlbums[activeAlbum].title}`} onClick={()=>setActiveAlbum(null)}><div className="gallery-modal-inner" onClick={(event)=>event.stopPropagation()}><button className="gallery-close" onClick={()=>setActiveAlbum(null)} aria-label="Cerrar galería">×</button><div className="gallery-modal-title"><small>{galleryAlbums[activeAlbum].title}</small><h3>{galleryAlbums[activeAlbum].subtitle}</h3></div><div className="gallery-stage"><button onClick={()=>movePhoto(-1)} aria-label="Fotografía anterior">←</button><img src={galleryAlbums[activeAlbum].photos[activePhoto]} alt={`${galleryAlbums[activeAlbum].subtitle}, fotografía ${activePhoto+1}`}/><button onClick={()=>movePhoto(1)} aria-label="Fotografía siguiente">→</button></div><div className="gallery-modal-footer"><span>{String(activePhoto+1).padStart(2,'0')} / {String(galleryAlbums[activeAlbum].photos.length).padStart(2,'0')}</span><div className="gallery-thumbs">{galleryAlbums[activeAlbum].photos.map((photo,index)=><button key={`${photo}-${index}`} className={index===activePhoto?'active':''} onClick={()=>setActivePhoto(index)} aria-label={`Ver fotografía ${index+1}`}><img src={photo} alt=""/></button>)}</div></div></div></div>}
   </main>;
 }
