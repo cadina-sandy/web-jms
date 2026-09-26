@@ -206,7 +206,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/dia-del-libro/20260422_122247.jpg",
     "category": "Día del Libro",
-    "alt": "Estudiantes y acompañantes en la feria del libro del escuela"
+    "alt": "Estudiantes y acompañantes en la feria del libro del colegio"
   },
   {
     "src": "/gallery/dia-del-libro/20260422_122331.jpg",
@@ -321,7 +321,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/dia-del-libro/20260422_130437.jpg",
     "category": "Día del Libro",
-    "alt": "Participante posando con el marco en el patio del escuela"
+    "alt": "Participante posando con el marco en el patio del colegio"
   },
   {
     "src": "/gallery/dia-del-libro/20260422_130532.jpg",
@@ -591,7 +591,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/dia-del-sindrome-de-down/20260320_115026.jpg",
     "category": "Día del Síndrome de Down",
-    "alt": "Cartelera del escuela con el afiche Ponte tus calcetines"
+    "alt": "Cartelera del colegio con el afiche Ponte tus calcetines"
   },
   {
     "src": "/gallery/dia-del-sindrome-de-down/20260320_093853.jpg",
@@ -756,7 +756,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/equipo/DSC_1052.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Parejas bailando en la cancha del escuela"
+    "alt": "Parejas bailando en la cancha del colegio"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/equipo/DSC_1054.JPG",
@@ -766,7 +766,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/equipo/DSC_1088.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Pinturas coloridas expuestas en el balcón del escuela"
+    "alt": "Pinturas coloridas expuestas en el balcón del colegio"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/equipo/DSC_1089.JPG",
@@ -781,7 +781,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/equipo/DSC_0026.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Integrantes del equipo del escuela posan juntas durante la Fiesta de la Chilenidad"
+    "alt": "Integrantes del equipo del colegio posan juntas durante la Fiesta de la Chilenidad"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/stand/DSC_0867.JPG",
@@ -1136,7 +1136,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/a/6/DSC_0999.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Vista general del baile de sexto A en el patio del escuela"
+    "alt": "Vista general del baile de sexto A en el patio del colegio"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/a/6/DSC_0995.JPG",
@@ -1536,7 +1536,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/b/4/DSC_0084.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Vista del baile de cuarto B frente al público del escuela"
+    "alt": "Vista del baile de cuarto B frente al público del colegio"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/b/4/DSC_0080.JPG",
@@ -1646,7 +1646,7 @@ const photos: { src: string; category: string; alt: string }[] = [
   {
     "src": "/gallery/fiesta-de-la-chilenidad/b/5/DSC_0110.JPG",
     "category": "Fiesta de la Chilenidad",
-    "alt": "Parejas de quinto B bailan frente a las familias del escuela"
+    "alt": "Parejas de quinto B bailan frente a las familias del colegio"
   },
   {
     "src": "/gallery/fiesta-de-la-chilenidad/b/5/DSC_0111.JPG",
@@ -1978,6 +1978,7 @@ function Gallery() {
   const [category, setCategory] = useState('Todas');
   const [selected, setSelected] = useState(0);
   const [folder, setFolder] = useState<string[]>([]);
+  const [showFolders, setShowFolders] = useState(false);
   const [failed, setFailed] = useState<string[]>([]);
   const dialog = useRef<HTMLDialogElement>(null);
   const isChilenidad = category === 'Fiesta de la Chilenidad';
@@ -2001,18 +2002,20 @@ function Gallery() {
   const move = (direction: number) => setSelected(value => (value + direction + visible.length) % visible.length);
   const close = () => dialog.current?.close();
   return <main className="gallery-page" id="galeria">
-    <header className="gallery-header"><a className="gallery-brand" href="#galeria"><img src={`${basePath}/logo-jms.png`} alt="Escudo de la Escuela JMS" /><span><strong>Escuela JMS</strong><small>Macul · Chile</small></span></a><span className="gallery-header-label">Nuestra comunidad en imágenes</span><a className="gallery-instagram" href="https://www.instagram.com/escuelajmsmacul/" target="_blank" rel="noreferrer">Instagram ↗</a></header>
-    <section className="gallery-intro" aria-labelledby="gallery-title"><div><p className="gallery-kicker">GALERÍA · ESCUELA JMS</p><h1 id="gallery-title">Pequeños momentos.<br /><em>Grandes recuerdos.</em></h1></div><p>Un recorrido por el aprendizaje y la vida en comunidad.</p></section>
+    <header className="gallery-header"><a className="gallery-brand" href="#galeria"><img src={`${basePath}/logo-jms.png`} alt="Escudo de la Escuela Julio Montt Salamanca" /><span><strong>Escuela Julio Montt Salamanca</strong><small>Macul · Chile</small></span></a><span className="gallery-header-label">Nuestra comunidad en imágenes</span><a className="gallery-instagram" href="https://www.instagram.com/escuelajmsmacul/" target="_blank" rel="noreferrer">Instagram ↗</a></header>
+    <section className="gallery-intro" aria-labelledby="gallery-title"><div><p className="gallery-kicker">GALERÍA · ESCUELA JULIO MONTT SALAMANCA</p><h1 id="gallery-title">Pequeños momentos.<br /><em>Grandes recuerdos.</em></h1></div><p>Un recorrido por el aprendizaje y la vida en comunidad.</p></section>
     <section className="gallery-collection" aria-label="Galería de imágenes">
-      <div className="gallery-toolbar"><nav aria-label="Secciones de la galería">{categories.map(item => <button key={item} aria-pressed={category === item} onClick={() => { setCategory(item); setSelected(0); setFolder([]); }}>{item}<span>{item === 'Todas' ? photos.length : photos.filter(photo => photo.category === item).length}</span></button>)}</nav></div>
+      <div className="gallery-toolbar"><nav aria-label="Secciones de la galería">{categories.map(item => <button key={item} aria-pressed={category === item} onClick={() => { setCategory(item); setSelected(0); setFolder([]); setShowFolders(false); }}>{item}<span>{item === 'Todas' ? photos.length : photos.filter(photo => photo.category === item).length}</span></button>)}</nav></div>
+      {category === 'Todas' && <div className="gallery-overview-bar"><p>{showFolders ? 'Elige una actividad para explorar sus fotos.' : 'Una selección de nuestros encuentros y celebraciones.'}</p><button className="gallery-folders-toggle" aria-expanded={showFolders} aria-controls="gallery-overview" onClick={() => setShowFolders(value => !value)}>{showFolders ? 'Ver collage' : 'Ver carpetas'} <span aria-hidden="true">{showFolders ? '↗' : '→'}</span></button></div>}
+      {category === 'Todas' && showFolders && <div className="gallery-folders" id="gallery-overview">{categories.filter(name => name !== 'Todas').map(name => <button key={name} className="gallery-folder" onClick={() => { setCategory(name); setSelected(0); setFolder([]); setShowFolders(false); }}><span aria-hidden="true">▱</span><strong>{name}</strong><span aria-hidden="true">→</span></button>)}</div>}
       {isChilenidad && <nav className="gallery-breadcrumbs" aria-label="Ubicación en Fiesta de la Chilenidad"><button onClick={() => openFolder([])} aria-current={folder.length === 0 ? 'page' : undefined}>Fiesta de la Chilenidad</button>{folder.map((part, index) => <span key={part}><span aria-hidden="true">/</span><button onClick={() => openFolder(folder.slice(0, index + 1))} aria-current={index === folder.length - 1 ? 'page' : undefined}>{folderLabel(part, folder[0])}</button></span>)}</nav>}
       {isChilenidad && folder.length > 0 && <button className="gallery-back" onClick={() => openFolder(folder.slice(0, -1))}>← Volver a las carpetas</button>}
       {browsingFolders && <div className="gallery-folders">{folders.map(name => <button className="gallery-folder" key={name} onClick={() => openFolder([...folder, name])} aria-label={`Abrir carpeta ${folderLabel(name, folder[0])}`}><svg width="52" height="44" viewBox="0 0 52 44" fill="none" aria-hidden="true"><path d="M3 12V7a4 4 0 0 1 4-4h12l6 7h20a4 4 0 0 1 4 4v23a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V12Z" fill="currentColor"/><path d="M3 15h46" stroke="white" strokeOpacity=".5" strokeWidth="2"/></svg><strong>{folderLabel(name, folder[0])}</strong><span aria-hidden="true">→</span></button>)}</div>}
-      <div className="gallery-grid" key={`${category}/${folder.join('/')}`}>
+      <div id={showFolders ? undefined : "gallery-overview"} hidden={category === 'Todas' && showFolders} className={`gallery-grid${category === 'Todas' ? ' gallery-collage' : ''}`} key={`${category}/${folder.join('/')}`}>
 {visible.map((item, index) => <button className="gallery-card" key={item.src} style={{ animationDelay: `${index * 65}ms` }} onClick={() => { setSelected(index); dialog.current?.showModal(); }} aria-label={`Ampliar: ${item.alt}`}><div className="gallery-image gallery-image-original">{failed.includes(item.src) ? <span className="gallery-unavailable">Imagen no disponible</span> : <img src={`${basePath}${item.src}`} alt={item.alt} loading={index < 2 ? 'eager' : 'lazy'} onError={() => setFailed(values => [...values, item.src])} />}<span className="gallery-expand" aria-hidden="true">↗</span></div></button>)}</div>
       <p className="gallery-reference" role="status">{browsingFolders ? 'Elige una carpeta para ver sus fotografías.' : visible.length === 0 ? `Próximamente: fotografías ${category === 'Todas' ? 'de nuestras actividades' : `de ${category}`}.` : 'Momentos de nuestra comunidad.'}</p>
     </section>
-    <footer className="gallery-footer"><span>Escuela JMS</span><span>Educando para el futuro.</span><a href="#galeria">Volver arriba ↑</a></footer>
+    <footer className="gallery-footer"><span>Escuela Julio Montt Salamanca</span><span>Educando para el futuro.</span><a href="#galeria">Volver arriba ↑</a></footer>
     {photo && <dialog ref={dialog} className="gallery-dialog" aria-labelledby="photo-title" onClick={event => { if (event.target === event.currentTarget) close(); }} onKeyDown={event => { if (event.key === 'ArrowRight') { event.preventDefault(); move(1); } if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1); } }}><button className="gallery-close" onClick={close} aria-label="Cerrar imagen" autoFocus>×</button><div className="gallery-viewer"><div className="gallery-full-image" key={photo.src}>{failed.includes(photo.src) ? <p>Esta imagen no está disponible en este momento.</p> : <img src={`${basePath}${photo.src}`} alt={photo.alt} onError={() => setFailed(values => [...values, photo.src])} />}</div><div className="gallery-viewer-bar"><h2 id="photo-title">{photo.category}</h2><div className="gallery-viewer-controls"><button onClick={() => move(-1)} aria-label="Imagen anterior">←</button><button onClick={() => move(1)} aria-label="Imagen siguiente">→</button></div></div></div></dialog>}
   </main>;
 }

@@ -4,3 +4,31 @@
 .gallery-card .gallery-image-original,.gallery-card:first-child .gallery-image-original{height:auto;background:#e8ecf3}.gallery-image-original img{height:auto;width:100%;object-fit:contain;filter:none}.gallery-card:hover .gallery-image-original img{transform:none}
 
 .gallery-breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 18px;color:#657089}.gallery-breadcrumbs>span{display:flex;align-items:center;gap:8px}.gallery-breadcrumbs button,.gallery-back{border:0;background:transparent;color:var(--navy);padding:8px 0;font:inherit}.gallery-breadcrumbs button:hover,.gallery-back:hover{text-decoration:underline}.gallery-breadcrumbs [aria-current=page]{font-weight:700}.gallery-back{margin-bottom:22px;font-size:14px}.gallery-folders{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px}.gallery-folder{display:flex;align-items:center;gap:18px;text-align:left;padding:28px 22px;min-height:120px;border:1px solid #dce1ec;border-radius:12px;background:white;color:var(--navy);transition:background .2s,border-color .2s}.gallery-folder:hover{background:#eef2fa;border-color:#8a9bb7}.gallery-folder svg{color:#dbac38;flex-shrink:0}.gallery-folder strong{font-size:21px}.gallery-folder>span{margin-left:auto;font-size:22px}@media(max-width:500px){.gallery-folders{grid-template-columns:1fr}.gallery-folder{min-height:100px;padding:20px}.gallery-breadcrumbs{font-size:14px}}
+
+/* Filtros alineados con la identidad visual de la escuela. */
+.gallery-toolbar{background:#fff;border-top:0;border-bottom:1px solid #e0e5ef;padding:22px 0;margin-bottom:30px;box-shadow:0 16px 28px -26px #10265030}
+.gallery-toolbar nav{width:100%;gap:12px}
+.gallery-toolbar button{justify-content:center;min-height:48px;min-width:128px;padding:12px 24px;border:1.5px solid #e0e5ef;border-radius:999px;background:#fff;color:#59647b;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1.35;transition:background .2s,border-color .2s,color .2s}
+.gallery-toolbar button:hover{background:#f5f7fb;border-color:#aab6cf}
+.gallery-toolbar button[aria-pressed=true]{background:#102653;border-color:#102653;color:#fff}
+.gallery-toolbar button span{font-size:11px;letter-spacing:0;font-weight:600;opacity:.75}
+.gallery-brand strong{max-width:360px;line-height:1.25}
+@media(max-width:750px){.gallery-toolbar nav{gap:10px}.gallery-toolbar button{min-width:110px;padding:11px 18px;font-size:12px}.gallery-brand strong{font-size:16px}.gallery-kicker{line-height:1.5}}
+@media(max-width:500px){.gallery-toolbar nav{gap:8px}.gallery-toolbar button{min-width:0;min-height:44px;padding:10px 14px;font-size:11px}.gallery-header{gap:14px}.gallery-brand{gap:10px}.gallery-brand strong{font-size:15px}.gallery-instagram{font-size:12px}.gallery-brand img{width:38px;height:46px}}
+
+/* Collage de portada: recortes solo en las miniaturas. */
+.gallery-overview-bar{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 0 26px}
+.gallery-overview-bar p{color:#657089;font-size:14px;line-height:1.6;margin:0}
+.gallery-folders-toggle{display:inline-flex;align-items:center;justify-content:center;gap:18px;flex-shrink:0;border:1px solid #102653;border-radius:999px;background:#102653;color:white;padding:14px 24px;font:inherit;font-size:14px;font-weight:700}
+.gallery-folders-toggle:hover{background:#203e72}
+.gallery-grid.gallery-collage{display:block;columns:3;column-gap:18px}
+.gallery-grid[hidden]{display:none}
+.gallery-collage .gallery-card,.gallery-collage .gallery-card:nth-child(even){display:block;width:100%;break-inside:avoid;padding:5px;margin:0 0 18px;background:#fff;border-radius:7px;box-shadow:0 3px 12px #1026530d;overflow:hidden}
+.gallery-collage .gallery-card .gallery-image{height:280px;border-radius:3px}
+.gallery-collage .gallery-card:nth-child(3n+2) .gallery-image{height:360px}
+.gallery-collage .gallery-card:nth-child(4n) .gallery-image{height:230px}
+.gallery-collage .gallery-image img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .35s}
+.gallery-collage .gallery-card:hover img{transform:scale(1.025)}
+.gallery-collage .gallery-expand{width:32px;height:32px;right:12px;bottom:12px;font-size:18px}
+@media(max-width:900px){.gallery-grid.gallery-collage{columns:2}.gallery-collage .gallery-card .gallery-image{height:250px}.gallery-collage .gallery-card:nth-child(3n+2) .gallery-image{height:320px}}
+@media(max-width:500px){.gallery-overview-bar{align-items:flex-start;flex-direction:column;gap:14px}.gallery-grid.gallery-collage{column-gap:10px}.gallery-collage .gallery-card,.gallery-collage .gallery-card:nth-child(even){padding:4px;margin-bottom:10px}.gallery-collage .gallery-card .gallery-image{height:170px}.gallery-collage .gallery-card:nth-child(3n+2) .gallery-image{height:230px}.gallery-collage .gallery-card:nth-child(4n) .gallery-image{height:145px}}
