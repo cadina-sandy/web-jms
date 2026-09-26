@@ -6,7 +6,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'Vista a Bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const categories = ['Todas', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'visits a bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
 const photos: { src: string; category: string; alt: string; video?: string }[] = [
 {"src":"/gallery/english-festival-2026/20260730_110317.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
 {"src":"/gallery/english-festival-2026/20260730_110843.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
@@ -404,27 +404,27 @@ const photos: { src: string; category: string; alt: string; video?: string }[] =
   },
   {
     "src": "/gallery/bomberos/2.jpeg",
-    "category": "Vista a Bomberos",
+    "category": "visits a bomberos",
     "alt": "Estudiantes junto a un carro de Bomberos en el cuartel"
   },
   {
     "src": "/gallery/bomberos/3.jpeg",
-    "category": "Vista a Bomberos",
+    "category": "visits a bomberos",
     "alt": "Estudiantes observan la cabina de un carro de Bomberos"
   },
   {
     "src": "/gallery/bomberos/4.jpeg",
-    "category": "Vista a Bomberos",
+    "category": "visits a bomberos",
     "alt": "Un bombero conversa con estudiantes dentro del carro"
   },
   {
     "src": "/gallery/bomberos/bomba1.jpeg",
-    "category": "Vista a Bomberos",
+    "category": "visits a bomberos",
     "alt": "Estudiantes conocen el equipamiento de Bomberos en el cuartel"
   },
   {
     "src": "/gallery/bomberos/bombero-1.png",
-    "category": "Vista a Bomberos",
+    "category": "visits a bomberos",
     "alt": "Afiche de la visita de quinto básico a la Compañía N°7 de Bomberos de Macul"
   },
   {
