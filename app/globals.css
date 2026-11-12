@@ -118,7 +118,8 @@
   font-weight: 700;
 }
 
-.student-name-fields {
+.student-name-fields,
+.guardian-name-fields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
@@ -166,12 +167,13 @@
   padding-bottom: 10px;
 }
 
-.student-rut-fields input[name="rutDigito"] {
+.student-rut-fields > label:last-child input {
   width: 60px;
 }
 
 @media (max-width: 680px) {
-  .student-name-fields {
+  .student-name-fields,
+  .guardian-name-fields {
     grid-template-columns: 1fr;
   }
 }
@@ -198,4 +200,131 @@
   .student-address-fields {
     grid-template-columns: 1fr;
   }
+}
+
+.reservation-hero {
+  height: 312.5px;
+}
+
+.reservation-hero h1 {
+  font-size: clamp(27px, 4vw, 48px);
+}
+
+.reservation-hero .hero-content {
+  padding-bottom: 45px;
+}
+
+.reservation-hero .admission-slide .hero-content {
+  padding-bottom: 56px;
+}
+
+.reservation-hero .hero-content p {
+  margin: 10px 0;
+}
+
+.reservation-hero .hero-controls {
+  bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .reservation-hero {
+    height: 285px;
+  }
+}
+
+@media (max-width: 560px) {
+  .reservation-hero {
+    height: 267.5px;
+  }
+}
+
+.student-identification-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.student-gender-field {
+  grid-column: 2;
+}
+
+.student-rut-fields > label:first-child {
+  min-width: 0;
+}
+
+.student-identification-fields input[type="text"],
+.student-identification-fields select {
+  min-height: 42px;
+}
+
+@media (max-width: 680px) {
+  .student-identification-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .student-gender-field {
+    grid-column: auto;
+  }
+}
+
+.student-email-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 9rem);
+  gap: 8px;
+}
+
+.student-email-fields > * {
+  min-width: 0;
+}
+
+.guardian-fields {
+  margin-top: 28px;
+}
+
+.reservation-form .guardian-name-fields input[type="text"] {
+  max-width: none;
+}
+
+@media (min-width: 681px) {
+  .guardian-name-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.identification-number-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.identification-number-fields input:disabled {
+  background: #f1f3f6;
+  cursor: not-allowed;
+}
+
+.guardian-phone-fields {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.guardian-phone-fields span,
+.guardian-phone-fields input {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #a9afbb;
+  font: inherit;
+  color: var(--navy);
+}
+
+.guardian-phone-fields span {
+  display: grid;
+  place-items: center;
+  background: #f1f3f6;
+}
+
+.guardian-phone-fields input {
+  min-width: 0;
+  width: 100%;
 }

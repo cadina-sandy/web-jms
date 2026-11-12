@@ -32,7 +32,7 @@ export default function HeroCarousel({ reservation = false }: { reservation?: bo
   const move = (direction: number) => setCurrent((value) => (value + direction + slideCount) % slideCount);
 
   return (
-    <section className="hero" id="inicio" aria-label="Información destacada">
+    <section className={reservation ? "hero reservation-hero" : "hero"} id="inicio" aria-label="Información destacada">
       {slides.map((slide, index) => (
         <article
           className={`slide ${slide.admission ? 'admission-slide' : ''} ${index === current ? 'active' : ''}`}
