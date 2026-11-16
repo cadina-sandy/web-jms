@@ -678,7 +678,13 @@ export default function ReservationSteps() {
   const [message, setMessage] = useState('');
   const submissionId = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  function displayErrors(errors: Record<string, string>) {
+  const shownErrors = useRef<Record<string, string>>({});
+  const validationFrame = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (validationFrame.current !== null) cancelAnimationFrame(validationFrame.current);
+  }, []);
+  function displayErrors(errors: Record<string, string>, focus = true) {
+    shownErrors.current = errors;
     const form = formRef.current;
     if (!form) return;
     form.querySelectorAll('[data-field-error]').forEach(node => node.remove());
@@ -695,9 +701,26 @@ export default function ReservationSteps() {
       element.insertAdjacentElement('afterend', error);
       const details = element.closest('details'); if (details) details.open = true;
     }
+    if (!focus) return;
     const first = form.querySelector<HTMLElement>('[aria-invalid="true"]');
     first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     first?.focus({ preventScroll: true });
+  }
+  function recheckShownErrors() {
+    if (!Object.keys(shownErrors.current).length) return;
+    if (validationFrame.current !== null) cancelAnimationFrame(validationFrame.current);
+    validationFrame.current = requestAnimationFrame(() => {
+      validationFrame.current = null;
+      const form = formRef.current;
+      if (!form) return;
+      const { errors } = validate(fromForm(new FormData(form)));
+      // Recheck only errors already shown. Do not mark untouched fields while typing.
+      const remaining = Object.fromEntries(Object.keys(shownErrors.current)
+        .filter(name => errors[name])
+        .map(name => [name, errors[name]]));
+      displayErrors(remaining, false);
+      if (!Object.keys(remaining).length) setMessage(current => current === 'Revisa los campos indicados.' ? '' : current);
+    });
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -775,7 +798,7 @@ export default function ReservationSteps() {
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
             {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
             <p>Completa los datos del estudiante, apoderado, emergencia, salud y antecedentes escolares. Todos los campos requieren respuesta, salvo el correo del estudiante y los detalles que no correspondan. En estos casos selecciona «No aplica» o «Ninguno», o indícalo en el campo de texto. Block, torre y departamento solo se completan si corresponden.</p>
-            <form ref={formRef} noValidate onSubmit={submit}>
+            <form ref={formRef} noValidate onSubmit={submit} onChange={recheckShownErrors}>
               <fieldset disabled={busy || saved} className="enrollment-inputs">
               <div className="enrollment-header-fields">
                 <label>

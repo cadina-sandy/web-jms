@@ -76,3 +76,9 @@ Resultado de la nueva prueba real: **APROBADO** en `https://escuela-juliomontt-p
 - Título al pulsar «Aquí», segundo clic sin cerrar la ficha, convivencia cerrada al hacer clic fuera conservando selección, errores con foco, suplente IPA, opciones de retiro/Otro, ambos roles, botón verde más grande y descarga CSV: **aprobados en navegador**, sin errores de aplicación.
 
 La prueba deja exclusivamente datos ficticios; no se eliminó ni modificó ninguna ficha existente.
+
+## Corrección de errores al editar
+
+Los errores visibles se vuelven a validar al cambiar los datos. Se retira el borde rojo y el mensaje cuando el campo pasa a ser válido; los demás errores pendientes se conservan. No se marcan campos nuevos mientras se escribe ni se desplaza el foco durante la corrección. Al guardar se sigue validando toda la ficha.
+
+Regresión en `tests/matricula-validation.browser.ts`: una ficha completa salvo un dato marca únicamente ese campo; corregir uno de dos errores mantiene el otro; un teléfono incompleto sigue marcado hasta tener nueve dígitos; el foco no salta. La prueba aborta cualquier solicitud de guardado y no escribe datos. Ejecutar contra el servidor local en puerto 3002 con `node --import tsx tests/matricula-validation.browser.ts` (o configurar `MATRICULA_TEST_URL`).
