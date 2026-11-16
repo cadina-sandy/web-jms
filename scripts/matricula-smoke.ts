@@ -16,6 +16,8 @@ try {
   await page.goto(new URL('/reserva-matricula/', base).href);
   await page.getByRole('button', {name: 'Aquí', exact: true}).click();
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'titulo-formulario');
+  await page.getByRole('button', {name: 'Aquí', exact: true}).click();
+  assert.equal(await page.locator('#formulario-matricula').isVisible(), true);
   await page.locator('.student-household summary').click();
   await page.locator('[name="conQuienVive"][value="Solo madre"]').check();
   await page.locator('#titulo-formulario').click();

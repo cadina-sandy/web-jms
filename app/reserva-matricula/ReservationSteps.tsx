@@ -757,7 +757,11 @@ export default function ReservationSteps() {
                     setEnrollmentDate(today);
                     setConsentDate(today);
                   }
-                  setOpen(!open);
+                  setOpen(true);
+                  if (open) {
+                    formHeading.current?.focus({ preventScroll: true });
+                    formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
                 }}
               >Aquí</button></p>
             </li>
