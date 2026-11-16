@@ -85,6 +85,6 @@ Regresión en `tests/matricula-validation.browser.ts`: una ficha completa salvo 
 
 ## Nueva matrícula después de guardar
 
-Después del mensaje de guardado correcto aparece **Hacer Nueva Matrícula**. Abre una ficha nueva, limpia todos los datos y estados de los subformularios, toma la fecha actual de Santiago y coloca el foco en el título. La siguiente matrícula genera un UUID nuevo; los reintentos antes del éxito conservan el UUID anterior. El botón no aparece si falta información o falla el guardado.
+El guardado correcto se muestra en un cuadro verde centrado con «Matrícula guardada.» destacado y el comprobante dinámico debajo, entre paréntesis y en letra pequeña. Después aparece **Hacer Nueva Matrícula**. Abre una ficha nueva, limpia todos los datos y estados de los subformularios, toma la fecha actual de Santiago y coloca el foco en el título. La siguiente matrícula genera un UUID nuevo; los reintentos antes del éxito conservan el UUID anterior. El botón no aparece si falta información o falla el guardado.
 
 Regresión `tests/new-enrollment.browser.ts`: fallo recuperable, éxito, reinicio completo (incluidos convivencia, identificación, correos personalizados y personas de retiro), foco/fecha y segunda matrícula con comprobante distinto. Usa respuestas de guardado simuladas en el navegador, sin escribir en Neon. Ejecutar contra el servidor local en puerto 3003 con `node --import tsx tests/new-enrollment.browser.ts`, o indicar `MATRICULA_TEST_URL`.

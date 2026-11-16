@@ -626,3 +626,7 @@
 .reservation-form .save-enrollment:hover { background: #10592d; }
 .reservation-form .save-enrollment:disabled { opacity: .65; cursor: default; }
 .enrollment-actor { width: min(100%, 560px); }
+
+.reservation-form .enrollment-success { box-sizing: border-box; width: min(100%, 560px); margin: 24px auto; padding: 24px 20px; border: 1px solid #8cc69e; border-radius: 8px; background: #e3f4e8; color: #10592d; text-align: center; }
+.enrollment-success strong { display: block; font-size: 1.3rem; }
+.enrollment-success small { display: block; margin-top: 8px; font-size: .75rem; overflow-wrap: anywhere; }
