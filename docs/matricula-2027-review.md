@@ -68,4 +68,11 @@ CSV en `/personal/matriculas/`: elegir/quitar/reordenar columnas, clave `MATRICU
 - Navegador local: título y desplazamiento, convivencia con selección conservada, campos obligatorios, ambas listas por rol, suplente IPA, retiro precargado y botón verde de mayor tamaño. Error de conexión simulado exclusivamente para comprobar conservación de la ficha; la prueba de Preview usa Neon real.
 - `scripts/matricula-smoke.ts`: prueba explícita con ficha ficticia, lectura posterior CSV, orden/descarga, acceso denegado, reintento idempotente y comprobación del aislamiento. Requiere `MATRICULA_SMOKE=1`, `MATRICULA_TEST_URL`, `MATRICULA_EXPORT_TOKEN` y, si aplica, `MATRICULA_TEST_SHARE_URL`. Escribe una ficha por ejecución. El navegador de pruebas permite `MATRICULA_TEST_IGNORE_HTTPS_ERRORS=1` para el certificado del proxy de este entorno; no cambia TLS de la aplicación.
 
-Resultado de la nueva prueba real: pendiente del Preview de esta revisión.
+Resultado de la nueva prueba real: **APROBADO** en `https://escuela-juliomontt-p0938i3qd-sandy-cadin-a.vercel.app` (código `7b107e7`). Comprobante `3b83b55a-62ff-474b-8161-67dbcb430d25`, datos `PRUEBA FICTICIA / NO REAL`, sin correo del estudiante, suplente con IPA y retiro seleccionado desde su nombre.
+
+- Guardado en Neon: **201**; lectura independiente por CSV: **200**, con nombre/IPA del suplente persistidos y columnas en el orden elegido.
+- Reintento del mismo envío: **200** sin duplicado; clave incorrecta: **401**; columna ajena a la lista: **400**.
+- Comprobación protegida: esquema **`matricula_preview_622f6dc95b8d3003`**, **`inPreview=true`**, **`inProductionNamespace=false`**. No se insertó la ficha en `public`.
+- Título al pulsar «Aquí», segundo clic sin cerrar la ficha, convivencia cerrada al hacer clic fuera conservando selección, errores con foco, suplente IPA, opciones de retiro/Otro, ambos roles, botón verde más grande y descarga CSV: **aprobados en navegador**, sin errores de aplicación.
+
+La prueba deja exclusivamente datos ficticios; no se eliminó ni modificó ninguna ficha existente.
