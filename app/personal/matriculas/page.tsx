@@ -43,7 +43,7 @@ export default function ExportMatriculas() {
   return (
     <main className="shell" style={{ paddingBlock: '3rem' }}>
       <h1>Exportar matrícula 2027</h1>
-      <p>Solo personal autorizado. El CSV incluye todos los campos.</p>
+      <p>Solo personal autorizado.</p>
       <form onSubmit={download}>
         <p>
           <label>
@@ -60,6 +60,7 @@ export default function ExportMatriculas() {
             </select>
           </label>
         </p>
+        <p>Campos del CSV{' · '}<strong>Todos los campos</strong></p>
         <button type="submit" disabled={!token || busy}>{busy ? 'Exportando…' : 'Descargar CSV'}</button>
         <p role="status">{message}</p>
       </form>
