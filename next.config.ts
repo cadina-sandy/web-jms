@@ -1,9 +1,9 @@
 import type { NextConfig } from 'next';
 
-const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
+const isGitHubPages = process.env.GITHUB_PAGES_EXPORT === 'true';
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  ...(isGitHubPages ? { output: 'export' as const } : {}),
   trailingSlash: true,
   images: { unoptimized: true },
   basePath: isGitHubPages ? '/web-jms' : '',

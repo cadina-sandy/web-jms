@@ -1,8 +1,6 @@
 name: Publicar sitio en GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -24,9 +22,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Retirar rutas dinámicas (GitHub Pages no ejecuta el servidor)
+        run: rm -rf app/api app/personal
       - run: npm run build:pages
+        # El formulario dirige el guardado al sitio Vercel.
         env:
+          GITHUB_PAGES_EXPORT: true
           NEXT_PUBLIC_BASE_PATH: /web-jms
+          NEXT_PUBLIC_MATRICULA_URL: https://escuela-juliomontt.vercel.app/reserva-matricula/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out

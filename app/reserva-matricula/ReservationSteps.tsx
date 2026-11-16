@@ -1,5 +1,6 @@
 'use client';
 
+import { fromForm, validate } from '@/lib/matricula/validation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const schoolProfileUrl = 'https://mime.mineduc.cl/mvc/ficha?rbd=9122';
@@ -277,19 +278,24 @@ function PhoneField({
 function EmailFields({ guardian = false }: { guardian?: boolean }) {
   const label = guardian ? 'Correo apoderado' : 'Correo del estudiante';
   const emailId = guardian ? 'correo-apoderado' : 'correo-estudiante';
+  const [domain, setDomain] = useState('');
 
   return (
     <div className="student-email-field">
-      <label htmlFor={emailId}>{label}</label>
+      <label htmlFor={emailId}>{label}{!guardian && ' (opcional)'}</label>
       <div className="student-email-fields">
         <input id={emailId} name={guardian ? "apoderadoCorreoUsuario" : "correoUsuario"} type="text" inputMode="email" autoCapitalize="none" spellCheck={false} pattern="[^@\s]+" title="Escribe solo la parte anterior a la arroba" />
-        <select name={guardian ? "apoderadoCorreoDominio" : "correoDominio"} defaultValue="" aria-label={`Dominio de ${label.toLowerCase()}`}>
+        <select name={guardian ? "apoderadoCorreoDominio" : "correoDominio"} value={domain} onChange={event => setDomain(event.target.value)} aria-label={`Dominio de ${label.toLowerCase()}`}>
           <option value="" disabled>Dominio</option>
           <option value="gmail.com">@gmail.com</option>
           <option value="hotmail.com">@hotmail.com</option>
           <option value="yahoo.com">@yahoo.com</option>
+          <option value="otra">Otra</option>
         </select>
       </div>
+      {domain === 'otra' && <label>Otro dominio (sin @)
+        <input name={guardian ? 'apoderadoCorreoDominioOtro' : 'correoDominioOtro'} type="text" placeholder="ejemplo.cl" autoCapitalize="none" spellCheck={false} />
+      </label>}
     </div>
   );
 }
@@ -434,7 +440,7 @@ function AuthorizedPickupFields() {
           </div>
         );
       })}
-      <button className="add-authorized-person" type="button" onClick={() => setPersonCount((count) => count + 1)}>
+      <button className="add-authorized-person" type="button" disabled={personCount >= 10} onClick={() => setPersonCount((count) => Math.min(10, count + 1))}>
         <span aria-hidden="true">+</span>
         Agregar otra persona
       </button>
@@ -640,6 +646,49 @@ function PhotoConsentFields({
 
 export default function ReservationSteps() {
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState('');
+  const submissionId = useRef<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  function displayErrors(errors: Record<string, string>) {
+    const form = formRef.current;
+    if (!form) return;
+    form.querySelectorAll('[data-field-error]').forEach(node => node.remove());
+    form.querySelectorAll('[aria-invalid]').forEach(node => { node.removeAttribute('aria-invalid'); node.removeAttribute('aria-errormessage'); });
+    let first: HTMLElement | null = null;
+    for (const [name, text] of Object.entries(errors)) {
+      const pickup = /^retiro(\d+)(Nombre|Telefono|RutNumero|RutDigito)$/.exec(name);
+      const suffix: Record<string, string> = { Nombre: 'nombre', Telefono: 'telefono', RutNumero: 'rutNumero', RutDigito: 'rutDigito' };
+      const inputName = pickup ? `personasAutorizadas[${Number(pickup[1]) - 1}][${suffix[pickup[2]]}]` : name;
+      const element = Array.from(form.elements).find(node => node.getAttribute('name') === inputName) as HTMLElement | undefined;
+      if (!element) continue;
+      const error = document.createElement('span');
+      error.dataset.fieldError = 'true'; error.className = 'field-error'; error.id = `error-${name}`; error.textContent = text;
+      element.setAttribute('aria-invalid', 'true'); element.setAttribute('aria-errormessage', error.id);
+      element.insertAdjacentElement('afterend', error);
+      const details = element.closest('details'); if (details) details.open = true;
+      if (!first) first = element;
+    }
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    first?.focus({ preventScroll: true });
+  }
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || saved) return;
+    const { answers, errors } = validate(fromForm(new FormData(event.currentTarget)));
+    displayErrors(errors);
+    if (Object.keys(errors).length) { setMessage('Revisa los campos indicados.'); return; }
+    submissionId.current ??= crypto.randomUUID();
+    setBusy(true); setMessage('');
+    try {
+      const response = await fetch('/api/matriculas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: submissionId.current, answers }) });
+      const result = await response.json() as { id?: string; errors?: Record<string, string>; error?: string };
+      if (!response.ok) { if (result.errors) displayErrors(result.errors); setMessage(result.error || 'Revisa los campos indicados.'); return; }
+      setSaved(true); setMessage(`Matrícula guardada. Comprobante: ${result.id}`);
+    } catch { setMessage('No se pudo conectar. Tu ficha sigue aquí; intenta nuevamente.'); }
+    finally { setBusy(false); }
+  }
   const [enrollmentDate, setEnrollmentDate] = useState<string | null>(null);
   const [consentDate, setConsentDate] = useState('');
   const [studentFirstName, setStudentFirstName] = useState('');
@@ -690,7 +739,10 @@ export default function ReservationSteps() {
 
           <section className="reservation-form" id="formulario-matricula" aria-labelledby="titulo-formulario" hidden={!open}>
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
-            <form onSubmit={(event) => event.preventDefault()}>
+            {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
+            <p>Completa los datos del estudiante, apoderado, emergencia, salud y antecedentes escolares. El correo del estudiante, segundo apellido, vivienda complementaria, apoderado suplente y autorización de imagen son opcionales.</p>
+            <form ref={formRef} noValidate onSubmit={submit}>
+              <fieldset disabled={busy || saved} className="enrollment-inputs">
               <div className="enrollment-header-fields">
                 <label>
                   Fecha
@@ -929,6 +981,9 @@ export default function ReservationSteps() {
                 studentName={studentName}
                 date={consentDate}
               />
+              </fieldset>
+              <button type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
+              <p role="status" aria-live="polite">{message}</p>
             </form>
           </section>
         </div>
