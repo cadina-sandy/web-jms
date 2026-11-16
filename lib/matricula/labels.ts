@@ -5,3 +5,6 @@ const overrides: Record<string, string> = {
 export const labels: Record<string, string> = { ...Object.fromEntries(fields.map(field => [field, field.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase())])), ...overrides };
 householdOptions.forEach((option, i) => { labels[`vive${i}`] = `Vive con: ${option.toLowerCase()}`; });
 for (let i = 1; i <= 10; i++) for (const [suffix, label] of [['Nombre', 'nombre'], ['Telefono', 'teléfono'], ['RutNumero', 'número RUT'], ['RutDigito', 'dígito RUT']]) labels[`retiro${i}${suffix}`] = `Retiro autorizado ${i}: ${label}`;
+
+Object.assign(labels, { matriculaRol: 'Quién realiza la matrícula', apoderadoSuplenteAplica: 'Tiene apoderado suplente', apoderadoSuplenteTipoIdentificacion: 'Suplente: tipo de identificación', apoderadoSuplenteIpa: 'Suplente: número IPA', apoderadoSuplenteIpaDigito: 'Suplente: dígito IPA', autorizacionImagenDecision: 'Autoriza uso de imagen', retiroCantidad: 'Cantidad de personas autorizadas' });
+for (let i = 1; i <= 10; i++) for (const [suffix, label] of [['Origen', 'persona seleccionada'], ['TipoIdentificacion','tipo de identificación'], ['Ipa','número IPA'], ['IpaDigito','dígito IPA']]) labels[`retiro${i}${suffix}`] = `Retiro autorizado ${i}: ${label}`;

@@ -28,3 +28,22 @@ test('fechas imposibles y teléfonos incompletos se rechazan', () => {
   const {errors} = validate({...fixture, fechaNacimiento: '2020-02-31', apoderadoCelular:'12'});
   assert.ok(errors.fechaNacimiento); assert.ok(errors.apoderadoCelular);
 });
+
+test('todos los campos base requieren respuesta, sin forzar consentimiento de imagen', () => {
+  const result = validate({...fixture, apellidoMaterno:'', apoderadoFechaNacimiento:'', programaApoyoFamiliar:'', autorizacionImagenDecision:'no'});
+  assert.ok(result.errors.apellidoMaterno); assert.ok(result.errors.apoderadoFechaNacimiento); assert.ok(result.errors.programaApoyoFamiliar);
+  assert.equal(result.errors.autorizacionImagenFirma, undefined);
+});
+test('suplente IPA se valida y sus datos de retiro se resuelven en servidor', () => {
+  const {answers, errors} = validate(fixture);
+  assert.deepEqual(errors, {});
+  assert.equal(answers.retiro1Nombre, fixture.apoderadoSuplenteNombreCompleto);
+  assert.equal(answers.retiro1TipoIdentificacion, 'ipa');
+  assert.equal(answers.retiro1Ipa, fixture.apoderadoSuplenteIpa);
+  assert.ok(validate({...fixture, apoderadoSuplenteIpa:''}).errors.apoderadoSuplenteIpa);
+});
+test('sin suplente exige selección de retiro válida, no detalles ocultos', () => {
+  const result = validate({...fixture, apoderadoSuplenteAplica:'no-aplica', retiro1Origen:'apoderado'});
+  assert.deepEqual(result.errors, {}); assert.equal(result.answers.apoderadoSuplenteIpa, '');
+  assert.ok(validate({...fixture, apoderadoSuplenteAplica:'no-aplica'}).errors.retiro1Origen);
+});

@@ -44,6 +44,7 @@ const nationalityCountries = [
 const guardianRelationships = ['Madre', 'Padre', 'Hermano/a', 'Tío/a', 'Abuelo/a', 'Tutor', 'Otro'];
 
 const guardianEducationLevels = [
+  'No aplica: sin escolaridad',
   'Básica',
   'Media / Científico-Humanista',
   'Media / Técnico',
@@ -173,7 +174,8 @@ function DocumentNumberFields({
   );
 }
 
-function IdentificationFields({ guardian = false, children }: { guardian?: boolean; children?: ReactNode }) {
+function IdentificationFields({ guardian = false, prefix = guardian ? 'apoderado' : '', children }: { guardian?: boolean; prefix?: string; children?: ReactNode }) {
+  const field = (suffix: string) => prefix ? `${prefix}${suffix}` : suffix[0].toLowerCase() + suffix.slice(1);
   const alternateId = guardian ? 'ipa' : 'ipe';
   const alternateLabel = guardian ? 'IPA' : 'IPE';
   const [identification, setIdentification] = useState<'rut' | 'ipe' | 'ipa' | null>(null);
@@ -182,23 +184,23 @@ function IdentificationFields({ guardian = false, children }: { guardian?: boole
     <>
       <fieldset>
         <legend>Tipo de identificación</legend>
-        <label><input type="radio" name={guardian ? "apoderadoTipoIdentificacion" : "tipoIdentificacion"} value="rut" checked={identification === 'rut'} onChange={() => setIdentification('rut')} /> RUT (Nacional)</label>
-        <label><input type="radio" name={guardian ? "apoderadoTipoIdentificacion" : "tipoIdentificacion"} value={alternateId} checked={identification === alternateId} onChange={() => setIdentification(alternateId)} /> {alternateLabel} (Extranjero)</label>
+        <label><input type="radio" name={field("TipoIdentificacion")} value="rut" checked={identification === 'rut'} onChange={() => setIdentification('rut')} /> RUT (Nacional)</label>
+        <label><input type="radio" name={field("TipoIdentificacion")} value={alternateId} checked={identification === alternateId} onChange={() => setIdentification(alternateId)} /> {alternateLabel} (Extranjero)</label>
       </fieldset>
       <div className="student-identification-fields">
         <div className="identification-number-fields">
           <DocumentNumberFields
             label="RUT"
-            numberName={guardian ? "apoderadoRutNumero" : "rutNumero"}
-            digitName={guardian ? "apoderadoRutDigito" : "rutDigito"}
+            numberName={field("RutNumero")}
+            digitName={field("RutDigito")}
             maxDigits={8}
             enabled={identification === 'rut'}
             visible={identification === null || identification === 'rut'}
           />
           <DocumentNumberFields
             label={alternateLabel}
-            numberName={guardian ? "apoderadoIpa" : "ipe"}
-            digitName={guardian ? "apoderadoIpaDigito" : "ipeDigito"}
+            numberName={field(guardian ? "Ipa" : "Ipe")}
+            digitName={field(guardian ? "IpaDigito" : "IpeDigito")}
             maxDigits={9}
             enabled={identification === alternateId}
             visible={identification === alternateId}
@@ -302,11 +304,19 @@ function EmailFields({ guardian = false }: { guardian?: boolean }) {
 
 function StudentHouseholdField() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    function closeOutside(event: PointerEvent) {
+      if (detailsRef.current && !detailsRef.current.contains(event.target as Node)) detailsRef.current.open = false;
+    }
+    document.addEventListener('pointerdown', closeOutside);
+    return () => document.removeEventListener('pointerdown', closeOutside);
+  }, []);
 
   return (
     <fieldset className="student-household">
       <legend>¿Con quién vive el estudiante?</legend>
-      <details>
+      <details ref={detailsRef} onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
         <summary>{selectedOptions.join(', ') || 'Selecciona una o más opciones'}</summary>
         <div className="household-options">
           {householdOptions.map((option) => (
@@ -397,55 +407,59 @@ function SelectWithOtherField({
   );
 }
 
-function AuthorizedPickupFields() {
+function AuthorizedPickupFields({ guardianName, substituteName }: { guardianName: string; substituteName: string }) {
   const [personCount, setPersonCount] = useState(1);
-  const newestName = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (personCount > 1) newestName.current?.focus();
-  }, [personCount]);
-
   return (
     <section className="authorized-pickup" aria-labelledby="titulo-personas-autorizadas">
       <h5 id="titulo-personas-autorizadas">Personas autorizadas para retirar al estudiante</h5>
-      {Array.from({ length: personCount }, (_, index) => {
-        const person = index + 1;
-        const fieldName = `personasAutorizadas[${index}]`;
-
-        return (
-          <div key={person} className="authorized-person-fields" role="group" aria-label={`Persona autorizada ${person}`}>
-            <label>
-              Nombre completo
-              <input
-                ref={person === personCount ? newestName : undefined}
-                name={`${fieldName}[nombre]`}
-                type="text"
-                autoComplete={`section-retiro-${person} name`}
-              />
-            </label>
-            <PhoneField
-              id={`telefono-retiro-${person}`}
-              name={`${fieldName}[telefono]`}
-              label="Teléfono"
-              autoComplete={`section-retiro-${person} tel-national`}
-            />
-            <DocumentNumberFields
-              label="RUT"
-              numberName={`${fieldName}[rutNumero]`}
-              digitName={`${fieldName}[rutDigito]`}
-              maxDigits={8}
-              enabled
-              visible
-            />
-          </div>
-        );
-      })}
-      <button className="add-authorized-person" type="button" disabled={personCount >= 10} onClick={() => setPersonCount((count) => Math.min(10, count + 1))}>
-        <span aria-hidden="true">+</span>
-        Agregar otra persona
+      <input type="hidden" name="retiroCantidad" value={personCount} />
+      {Array.from({ length: personCount }, (_, index) => <PickupPerson key={index} person={index + 1} guardianName={guardianName} substituteName={substituteName} />)}
+      <button className="add-authorized-person" type="button" disabled={personCount >= 10} onClick={() => setPersonCount(count => Math.min(10, count + 1))}>
+        <span aria-hidden="true">+</span> Agregar otra persona
       </button>
     </section>
   );
+}
+
+function PickupPerson({ person, guardianName, substituteName }: { person: number; guardianName: string; substituteName: string }) {
+  const [source, setSource] = useState('');
+  const prefix = `retiro${person}`;
+  const selectedName = source === 'apoderado' ? guardianName : source === 'apoderado-suplente' ? substituteName : '';
+  return <div className="authorized-person-fields" role="group" aria-label={`Persona autorizada ${person}`}>
+    <label>Nombre completo
+      <select name={`${prefix}Origen`} value={source} onChange={event => setSource(event.target.value)}>
+        <option value="" disabled>Selecciona una persona</option>
+        <option value="apoderado" disabled={!guardianName}>{guardianName || 'Apoderado'}</option>
+        <option value="apoderado-suplente" disabled={!substituteName}>{substituteName || 'Apoderado suplente'}</option>
+        <option value="otro">Otro</option>
+      </select>
+    </label>
+    {source === 'otro' ? <>
+      <label>Nombre de otra persona<input name={`${prefix}Nombre`} type="text" /></label>
+      <PhoneField id={`telefono-retiro-${person}`} name={`${prefix}Telefono`} label="Teléfono" />
+      <IdentificationFields guardian prefix={prefix} />
+    </> : <>
+      <input type="hidden" name={`${prefix}Nombre`} value={selectedName} />
+      {source && <p>Se usarán los datos de identificación y teléfono del apoderado seleccionado.</p>}
+    </>}
+  </div>;
+}
+
+function EnrollmentActor({ guardianName, substituteName }: { guardianName: string; substituteName: string }) {
+  const [role, setRole] = useState('');
+  return <div className="enrollment-actor">
+    <label>Quién realiza la matrícula
+      <select name="matriculaRol" value={role} onChange={event => setRole(event.target.value)}>
+        <option value="" disabled>Selecciona una opción</option>
+        <option value="funcionario">Funcionario JMS</option>
+        <option value="apoderado">Apoderado</option>
+      </select>
+    </label>
+    {role && <SelectWithOtherField key={role} id="funcionario-matricula" name="funcionarioMatricula" label={role === 'funcionario' ? 'Nombre del funcionario JMS' : 'Nombre del apoderado que matricula'} placeholder="Selecciona un nombre" manualPlaceholder="Escribe el nombre completo" options={role === 'funcionario' ? enrollmentStaff : [
+      ...(guardianName ? [{value: 'apoderado', label: guardianName}] : []),
+      ...(substituteName ? [{value: 'apoderado-suplente', label: substituteName}] : []),
+    ]} />}
+  </div>;
 }
 
 function StudentHealthFields() {
@@ -465,6 +479,7 @@ function StudentHealthFields() {
             onChange={(event) => setInsuranceType(event.currentTarget.value)}
           >
             <option value="" disabled>Selecciona una previsión</option>
+            <option value="no-aplica">No aplica: sin previsión</option>
             <option value="fonasa">Fonasa</option>
             <option value="isapre">Isapre</option>
             <option value="otra">Otra</option>
@@ -496,7 +511,7 @@ function StudentHealthFields() {
       <div className="student-health-fields">
         <label className="health-allergy-field">
           ¿Algún medicamento contraindicado y/o alergia alimentaria?
-          <input name="saludMedicamentosContraindicadosOAlergias" type="text" />
+          <input placeholder="Ninguno, si no corresponde" name="saludMedicamentosContraindicadosOAlergias" type="text" />
         </label>
       </div>
       <div className="student-health-fields">
@@ -508,6 +523,7 @@ function StudentHealthFields() {
             onChange={(event) => setHealthCenter(event.currentTarget.value)}
           >
             <option value="" disabled>Selecciona un consultorio</option>
+            <option value="no-aplica">No aplica: sin consultorio</option>
             <option value="felix-de-amesti">Dr. Félix de Amesti</option>
             <option value="padre-alberto-hurtado">Padre Alberto Hurtado</option>
             <option value="santa-julia">Santa Julia</option>
@@ -582,11 +598,11 @@ function StudentSchoolHistoryFields() {
       <div className="student-school-fields">
         <label>
           ¿Presenta alguna dificultad de aprendizaje? Especifique
-          <input name="dificultadAprendizaje" type="text" />
+          <input placeholder="Ninguna, si no corresponde" name="dificultadAprendizaje" type="text" />
         </label>
         <label className="detail-field">
           ¿Es tratado por algún especialista? Especifique
-          <input name="tratamientoEspecialista" type="text" />
+          <input placeholder="No aplica, si no corresponde" name="tratamientoEspecialista" type="text" />
         </label>
       </div>
       <div className="student-school-fields">
@@ -594,6 +610,7 @@ function StudentSchoolHistoryFields() {
           ¿Pertenece a algún programa de apoyo familiar?
           <select name="programaApoyoFamiliar" defaultValue="">
             <option value="" disabled>Selecciona un programa</option>
+            <option value="no-aplica">No aplica: ningún programa</option>
             <option value="PRM">PRM</option>
             <option value="PPF">PPF</option>
             <option value="FAE">FAE</option>
@@ -616,9 +633,18 @@ function PhotoConsentFields({
   studentName: string;
   date: string;
 }) {
+  const [consent, setConsent] = useState('');
   return (
     <section className="photo-consent" aria-labelledby="titulo-autorizacion-imagen">
       <h4 id="titulo-autorizacion-imagen">AUTORIZACIÓN DE USO DE IMAGEN</h4>
+      <label>¿Autoriza el uso de imagen?
+        <select name="autorizacionImagenDecision" value={consent} onChange={event => setConsent(event.target.value)}>
+          <option value="" disabled>Selecciona una opción</option>
+          <option value="si">Sí, autorizo</option>
+          <option value="no">No autorizo</option>
+        </select>
+      </label>
+      {consent === 'si' && <>
       <p>
         Yo{' '}
         <select name="autorizacionImagenApoderado" aria-label="Apoderado que autoriza" defaultValue="">
@@ -640,6 +666,7 @@ function PhotoConsentFields({
           <input name="autorizacionImagenFecha" type="text" value={date.split('-').reverse().join('/')} readOnly />
         </label>
       </div>
+      </>}
     </section>
   );
 }
@@ -660,7 +687,7 @@ export default function ReservationSteps() {
       const pickup = /^retiro(\d+)(Nombre|Telefono|RutNumero|RutDigito)$/.exec(name);
       const suffix: Record<string, string> = { Nombre: 'nombre', Telefono: 'telefono', RutNumero: 'rutNumero', RutDigito: 'rutDigito' };
       const inputName = pickup ? `personasAutorizadas[${Number(pickup[1]) - 1}][${suffix[pickup[2]]}]` : name;
-      const element = Array.from(form.elements).find(node => node.getAttribute('name') === inputName) as HTMLElement | undefined;
+      const element = (Array.from(form.elements).find(node => node.getAttribute('name') === name) ?? Array.from(form.elements).find(node => node.getAttribute('name') === inputName)) as HTMLElement | undefined;
       if (!element) continue;
       const error = document.createElement('span');
       error.dataset.fieldError = 'true'; error.className = 'field-error'; error.id = `error-${name}`; error.textContent = text;
@@ -696,18 +723,22 @@ export default function ReservationSteps() {
   const [guardianFirstName, setGuardianFirstName] = useState('');
   const [guardianLastName, setGuardianLastName] = useState('');
   const [substituteName, setSubstituteName] = useState('');
+  const [hasSubstitute, setHasSubstitute] = useState('');
   const formHeading = useRef<HTMLHeadingElement>(null);
   const studentName = [studentFirstName, studentFirstSurname, studentSecondSurname].map((part) => part.trim()).filter(Boolean).join(' ');
   const guardianName = [guardianFirstName, guardianLastName].map((part) => part.trim()).filter(Boolean).join(' ');
 
   useEffect(() => {
-    if (open) formHeading.current?.focus();
+    if (open) {
+      formHeading.current?.focus({ preventScroll: true });
+      formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [open]);
 
   return (
       <section className="section reservation-steps" id="pasos-matricula" aria-labelledby="titulo-pasos-matricula">
         <div className="shell">
-          <h2 id="titulo-pasos-matricula">Pasos a seguir<br /> <em>para reservar tu matricula</em></h2>
+          <h2 id="titulo-pasos-matricula">Pasos a seguir<br /> <em>para reservar tu matrícula para alumnos antiguos</em></h2>
           <ol className="reservation-step-list">
             <li>
               <h3>Paso 1</h3>
@@ -739,7 +770,7 @@ export default function ReservationSteps() {
           <section className="reservation-form" id="formulario-matricula" aria-labelledby="titulo-formulario" hidden={!open}>
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
             {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
-            <p>Completa los datos del estudiante, apoderado, emergencia, salud y antecedentes escolares. El correo del estudiante, segundo apellido, vivienda complementaria, apoderado suplente y autorización de imagen son opcionales.</p>
+            <p>Completa los datos del estudiante, apoderado, emergencia, salud y antecedentes escolares. Todos los campos requieren respuesta, salvo el correo del estudiante y los detalles que no correspondan. En estos casos selecciona «No aplica» o «Ninguno», o indícalo en el campo de texto. Block, torre y departamento solo se completan si corresponden.</p>
             <form ref={formRef} noValidate onSubmit={submit}>
               <fieldset disabled={busy || saved} className="enrollment-inputs">
               <div className="enrollment-header-fields">
@@ -774,7 +805,7 @@ export default function ReservationSteps() {
                 </label>
                 <label>
                   Segundo Apellido
-                  <input name="apellidoMaterno" type="text" value={studentSecondSurname} onChange={(event) => setStudentSecondSurname(event.currentTarget.value)} />
+                  <input placeholder="No aplica si no tiene segundo apellido" name="apellidoMaterno" type="text" value={studentSecondSurname} onChange={(event) => setStudentSecondSurname(event.currentTarget.value)} />
                 </label>
                 <label>
                   Fecha de nacimiento
@@ -871,6 +902,7 @@ export default function ReservationSteps() {
                       <option value="Dueña de casa">Dueña de casa</option>
                       <option value="Trabajador independiente">Trabajador independiente</option>
                       <option value="Trabajador dependiente">Trabajador dependiente</option>
+                      <option value="no-aplica">No aplica: sin actividad laboral</option>
                     </select>
                   </label>
                   <label>
@@ -879,6 +911,7 @@ export default function ReservationSteps() {
                       <option value="" disabled>Selecciona una opción</option>
                       <option value="Fuera de casa">Fuera de casa</option>
                       <option value="Desde la casa">Desde la casa</option>
+                      <option value="no-aplica">No aplica</option>
                     </select>
                   </label>
                   <label>
@@ -891,32 +924,22 @@ export default function ReservationSteps() {
                   </label>
                 </IdentificationFields>
                 <div className="substitute-guardian-fields">
-                  <label>
-                    2.1 Nombre completo del apoderado suplente
-                    <input
-                      name="apoderadoSuplenteNombreCompleto"
-                      type="text"
-                      autoComplete="section-apoderado-suplente name"
-                      value={substituteName}
-                      onChange={(event) => setSubstituteName(event.currentTarget.value)}
-                    />
+                  <label>¿Tiene apoderado suplente?
+                    <select name="apoderadoSuplenteAplica" value={hasSubstitute} onChange={event => setHasSubstitute(event.target.value)}>
+                      <option value="" disabled>Selecciona una opción</option>
+                      <option value="si">Sí</option>
+                      <option value="no-aplica">No aplica: sin suplente</option>
+                    </select>
                   </label>
-                  <div className="student-identification-fields">
-                    <RelationshipField name="apoderadoSuplenteParentesco" />
-                    <DocumentNumberFields
-                      label="RUT"
-                      numberName="apoderadoSuplenteRutNumero"
-                      digitName="apoderadoSuplenteRutDigito"
-                      maxDigits={8}
-                      enabled
-                      visible
-                    />
-                    <PhoneField
-                      id="celular-apoderado-suplente"
-                      name="apoderadoSuplenteCelular"
-                      autoComplete="section-apoderado-suplente tel-national"
-                    />
-                  </div>
+                  {hasSubstitute === 'si' && <>
+                    <label>2.1 Nombre completo del apoderado suplente
+                      <input name="apoderadoSuplenteNombreCompleto" type="text" autoComplete="section-apoderado-suplente name" value={substituteName} onChange={event => setSubstituteName(event.target.value)} />
+                    </label>
+                    <IdentificationFields guardian prefix="apoderadoSuplente">
+                      <RelationshipField name="apoderadoSuplenteParentesco" />
+                      <PhoneField id="celular-apoderado-suplente" name="apoderadoSuplenteCelular" autoComplete="section-apoderado-suplente tel-national" />
+                    </IdentificationFields>
+                  </>}
                 </div>
               </section>
               <h4 className="emergency-heading">3. Situación de Emergencia</h4>
@@ -929,7 +952,7 @@ export default function ReservationSteps() {
                   manualPlaceholder="Escribe el nombre del contacto"
                   options={[
                     { value: 'apoderado', label: guardianName || 'Apoderado' },
-                    { value: 'apoderado-suplente', label: substituteName.trim() || 'Apoderado suplente' },
+                    { value: 'apoderado-suplente', label: (hasSubstitute === 'si' ? substituteName.trim() : '') || 'Apoderado suplente' },
                   ]}
                 />
                 <PhoneField
@@ -938,7 +961,7 @@ export default function ReservationSteps() {
                   autoComplete="section-emergencia tel-national"
                 />
               </div>
-              <AuthorizedPickupFields />
+              <AuthorizedPickupFields guardianName={guardianName} substituteName={hasSubstitute === 'si' ? substituteName.trim() : ''} />
               <StudentHealthFields />
               <p className="enrollment-notice">
                 Al completar esta ficha toma conocimiento y acepta el{' '}
@@ -965,23 +988,16 @@ export default function ReservationSteps() {
               </p>
               <StudentSchoolHistoryFields />
               <div className="enrollment-staff">
-                <SelectWithOtherField
-                  id="funcionario-matricula"
-                  name="funcionarioMatricula"
-                  label="Nombre de quién matricula (Funcionario colegio JMS)"
-                  placeholder="Selecciona un nombre"
-                  manualPlaceholder="Escribe el nombre completo"
-                  options={enrollmentStaff}
-                />
+                <EnrollmentActor guardianName={guardianName} substituteName={hasSubstitute === 'si' ? substituteName.trim() : ''} />
               </div>
               <PhotoConsentFields
                 guardianName={guardianName}
-                substituteName={substituteName.trim()}
+                substituteName={(hasSubstitute === 'si' ? substituteName.trim() : '')}
                 studentName={studentName}
                 date={consentDate}
               />
               </fieldset>
-              <button type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
+              <button className="save-enrollment" type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
               <p role="status" aria-live="polite">{message}</p>
             </form>
           </section>

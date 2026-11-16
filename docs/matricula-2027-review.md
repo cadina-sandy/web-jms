@@ -1,38 +1,71 @@
-# Matrícula 2027: cambios y auditoría de despliegue
+# Matrícula 2027 — revisión del PR #3
 
-## Situación encontrada
+## Regla de obligatoriedad confirmada
 
-El formulario existente solo ejecutaba `preventDefault`: no guardaba, no tenía botón de envío, validación de obligatorios ni exportación. `output: 'export'` impedía ejecutar un POST de Next.js en Vercel. El proyecto conectado a este repositorio es `escuela-juliomontt` (`prj_wwZcejuim01PHuSmpauDgY0oRj8m`), no `web-jms`. Neon ya estaba provisionado; `MATRICULA_DATABASE_URL` existe para Preview y Production como secreto de integración. No fue necesario crear otra base ni copiar credenciales.
+El usuario confirmó: **todos los campos deben responderse, excepto el correo del estudiante y los detalles que no correspondan**. Se aplica tanto en cliente como en servidor. Una respuesta negativa o «No aplica» cuenta como respuesta; dejar vacío un campo aplicable no.
 
-## Cambios preparados
+Se corrigieron las excepciones que la primera versión había dejado opcionales: segundo apellido, convivencia, fecha de nacimiento/educación/situación laboral/lugar de trabajo/RSH del apoderado, declaración sobre suplente, al menos una persona de retiro, medicamentos/alergias, dificultades de aprendizaje, tratamiento especialista, programa familiar, rol de quien matricula y decisión de uso de imagen.
 
-- Guardar Matrícula envía JSON a `POST /api/matriculas`. Cliente y servidor comparten validación; los errores aparecen junto a cada campo, con foco y desplazamiento al primero. Si falla la conexión, la ficha permanece en pantalla.
-- `matriculas_2027` guarda cada respuesta en una columna de texto separada, sin agrupar toda la ficha en JSON. Identificación, número y dígito, usuario y dominio del correo, detalles «otro» y cada dato de retiro tienen columnas propias. Cada opción de convivencia tiene un sí/no separado. Se admiten hasta diez personas para retiro (límite visible en el botón).
-- La tabla se crea sin borrar tablas previas, en la misma transacción del primer guardado. Las consultas parametrizan los valores y solo usan identificadores de una lista fija. El cliente Neon se inicializa al recibir solicitudes; compilar no requiere credenciales.
-- Un UUID por envío evita duplicados al reintentar una respuesta perdida. Tras guardar se muestra comprobante y se bloquea un nuevo envío desde esa ficha.
-- Correo del estudiante opcional; si se empieza a completar se exige un correo válido. Ambos correos tienen «Otra» y entrada para dominio sin @.
-- Segundo apellido, vivienda complementaria y apoderado suplente son opcionales. Si se empieza a completar un suplente o una persona de retiro, deben completarse sus datos. Los detalles condicionales se exigen solo cuando aplican. La autorización de imagen es opcional; si se completa, requiere apoderado y nombre para firma.
-- `/personal/matriculas/` permite agregar/quitar columnas y moverlas con botones antes de descargar CSV. `POST /api/matriculas/exportar` exige `MATRICULA_EXPORT_TOKEN` del servidor. No basta seleccionar un funcionario en la ficha. No se persiste la clave en almacenamiento del navegador ni se coloca en una URL. CSV con BOM UTF-8, comillas escapadas, fórmulas neutralizadas y respuesta `no-store`; rechaza columnas ajenas a la lista permitida. Límite explícito de 10.000 registros para no truncar silenciosamente.
-- Vercel conserva `npm run build:pages` pero genera rutas dinámicas. GitHub Pages queda como publicación manual: retira las rutas servidor antes de exportar y remite la matrícula al sitio Vercel, porque Pages no puede guardar en Neon. El enlace Vercel es configurable en ese workflow.
+- Segundo apellido: requiere respuesta; puede indicar «No aplica» si no tiene segundo apellido.
+- Correo estudiante: completamente vacío es válido; si se empieza a completar se exige correo válido. Ambos correos admiten «Otra» con dominio sin @.
+- Block/torre y departamento: detalles de vivienda solo si corresponden.
+- Suplente: debe responder Sí o «No aplica: sin suplente». Con Sí se exigen nombre, parentesco, teléfono y RUT o IPA con dígito. Con No aplica se omiten sus detalles.
+- Retiro: al menos una persona. Apoderado y suplente se ofrecen por nombre y copian sus datos de identificación/teléfono en columnas propias al guardar. «Otro» exige nombre, teléfono e identificación RUT/IPA. Se admiten hasta diez personas.
+- Detalles de otra previsión/consultorio, diagnóstico, curso repetido, colegio de procedencia y nombres «Otro»: solo se exigen si la selección los habilita.
+- Medicamentos/alergias, dificultades y tratamiento: responder «Ninguno», «Ninguna» o «No aplica» si corresponde, sin inventar diagnósticos.
+- Uso de imagen: **es obligatorio decidir Sí/No, no es obligatorio autorizar**. Solo con Sí se pide quién autoriza y nombre para firma. Se mantiene la firma presencial anunciada.
 
-## Configuración y pendientes antes de producción
+## Casos donde faltaba «No aplica»
 
-1. **Prioridad alta: dependencias.** `npm audit --omit=dev` reporta 1 vulnerabilidad crítica (`next`) y 3 altas (`postcss`, `sharp`, `source-map-js`) en el árbol instalado. El registro recomienda Next.js `16.4.6`; la versión actual es `16.2.6`. Incluye avisos RCE (por ejemplo GHSA-2464-fhr4-w9xw y GHSA-673q-mjm6-r5xr), cuya explotabilidad depende de las funciones usadas. Esta aplicación desactiva optimización de imágenes y no usa `use cache`, pero eso no sustituye actualizar. Preparar una actualización de Next y su configuración ESLint, siguiendo la guía de migración y revalidando vinext/React; esta rama de funcionalidad no modifica la versión del framework.
-2. Crear `MATRICULA_EXPORT_TOKEN` como secreto de Production en el proyecto Vercel, con una clave aleatoria de al menos 32 bytes; entregarla al personal autorizado por un canal seguro y rotarla al cambiar permisos. Sin esa variable, exportar falla de forma cerrada (503). La rama de revisión usa una clave distinta, limitada a su Preview. No se incluyeron secretos en Git.
-3. Verificar aislamiento de Neon: Preview y Production tienen asignada la integración al mismo store. No se puede inferir del listado si Neon crea ramas separadas. La prueba crea exclusivamente una ficha marcada PRUEBA FICTICIA / NO REAL; el comprobante queda registrado abajo. No usar fichas reales en Preview hasta confirmar ese aislamiento.
-4. El rol de conexión necesita CREATE TABLE para el primer guardado. Para un despliegue con rol restringido, ejecutar previamente el SQL de `lib/matricula/db.ts` mediante un rol de migración y mantener solo INSERT/SELECT para la aplicación. Cambios futuros de esquema requieren una migración explícita; CREATE IF NOT EXISTS no altera una tabla previa.
-5. La clave compartida es un control de acceso inicial, sin auditoría individual de funcionarios. Si se requieren cuentas nominativas y revocación individual, integrar el proveedor de identidad del colegio antes de distribuir acceso masivo. La ficha pública permite solicitudes desde su propio origen; para abuso automatizado se requiere una política de rate limiting/BotID/WAF según volumen.
-6. El proyecto tiene Vercel Authentication para dominios Vercel (excepto dominios propios). Comprobar el acceso público deseado antes de la apertura de matrículas. No se modificó esa protección.
-7. El enlace «EXTRACTO DEL REGLAMENTO INTERNO» aún abre el reglamento completo. Falta el documento específico. El campo de nombre para firma no sustituye la firma presencial anunciada en el paso 3. Confirmar también con el colegio la lista definitiva de campos obligatorios y opciones que actualmente no incluyen «Ninguno» en programas de apoyo familiar.
-8. No se ha fusionado la rama ni promovido un despliegue de producción.
+Se añadieron opciones explícitas en suplente (sin suplente), educación (sin escolaridad), situación laboral (sin actividad), lugar de trabajo, previsión (sin previsión), consultorio (sin consultorio) y programa familiar (ningún programa). En segundo apellido y respuestas de texto se indica cómo responder cuando no corresponde. No procede «No aplica» para nombres, fecha de nacimiento, identificación del estudiante/apoderado, domicilio, contacto de emergencia o decisión de imagen: se requiere el dato o una respuesta negativa válida.
 
-## Validación
+## Ajustes de interacción
 
-- `npm test`: validación compartida, correo opcional y dominios personalizados, obligatorios y detalles condicionales, teléfonos/fechas, respuestas separadas y CSV seguro.
-- `npm run build:pages`: compilación real Next.js, incluidas las dos rutas dinámicas.
-- `npm run lint`: sin errores; advertencias preexistentes por imágenes HTML.
-- `scripts/matricula-smoke.ts`: prueba explícita de navegador con ficha ficticia, comprobante, reintento idempotente, lectura de lo guardado mediante CSV, orden de columnas, rechazo de acceso y descarga desde la pantalla del personal. Ejecutar con `MATRICULA_SMOKE=1`, `MATRICULA_TEST_URL`, `MATRICULA_EXPORT_TOKEN` y, si aplica, `MATRICULA_TEST_SHARE_URL`. Usa Chromium instalado, configurable con `CHROMIUM_PATH`. La prueba escribe una ficha por ejecución y no borra registros. En entornos con certificado de proxy no reconocido por Chromium se puede activar `MATRICULA_TEST_IGNORE_HTTPS_ERRORS=1` exclusivamente en esta prueba; la aplicación conserva su configuración TLS.
+- Subtítulo «para reservar tu matrícula para alumnos antiguos».
+- «Aquí» abre la ficha, desplaza hasta su título y le da foco sin ocultarlo bajo la cabecera.
+- Convivencia cierra al hacer clic fuera o pulsar Escape y conserva los checks.
+- Suplente con selección RUT/IPA.
+- Retiro con nombres precargados del apoderado/suplente, y «Otro» para ingreso manual.
+- Selector «Funcionario JMS»/«Apoderado» muestra la lista correspondiente; cambiar de rol reinicia la selección anterior. Esto identifica quién completa la ficha, no concede acceso al CSV.
+- Guardar Matrícula verde, centrado, más ancho y alto que los campos; estado guardando y bloqueo tras éxito.
+- Errores junto al campo, desplazamiento/foco al primer error según el orden del formulario. Si falla el guardado se conserva la ficha.
 
-Resultado de Preview: **aprobado** en `https://escuela-juliomontt-cqw1usu25-sandy-cadin-a.vercel.app` (código de aplicación `d80d555`). Se verificó respuesta 201 de Neon y lectura posterior desde una solicitud independiente de CSV. Comprobante de la ejecución completa: `70e4c355-2619-4369-824d-5d30e6cc4251`, ficha `PRUEBA FICTICIA / NO REAL`, curso `1°A`, correo del estudiante vacío y dominio del apoderado `example.invalid`. Reintento: 200 sin duplicado; clave incorrecta: 401; columna no permitida: 400; CSV autorizado: 200; descarga en navegador correcta y sin errores de aplicación. Las ejecuciones previas de diagnóstico también pudieron guardar fichas marcadas ficticias; no se eliminaron registros.
+## Neon y separación de datos
 
-La compilación estática de GitHub Pages también pasó en un checkout separado, retirando las rutas dinámicas como indica el workflow. Los ajustes posteriores de la aplicación solo evitan la redirección 308 de las URL de API con slash final y eligen el primer error según el orden real de los controles.
+Proyecto Vercel: `escuela-juliomontt` (`prj_wwZcejuim01PHuSmpauDgY0oRj8m`). La integración Neon existente `DataBasejms` (`store_OYUTbsTy6or9CWZn`) está conectada a Preview/Production con acciones de despliegue Neon. Se utiliza exclusivamente `MATRICULA_DATABASE_URL` del servidor; no se copiaron ni expusieron credenciales.
+
+**Aislamiento explícito de la aplicación:** Production usa `public.matriculas_2027`; cada rama Preview usa `matricula_preview_<hash-de-rama>.matriculas_2027`; desarrollo usa `matricula_development.matriculas_2027`. Guardado y exportación seleccionan el mismo destino en el servidor. Preview sin rama y entornos desconocidos fallan de forma cerrada. No se migran ni copian fichas de `public` al espacio Preview. Los identificadores derivan de una lista fija y de hashes, nunca de SQL recibido del cliente.
+
+La inicialización crea el esquema/tabla y añade las nuevas columnas sin borrar datos. Un bloqueo transaccional por esquema evita carreras entre primeros guardados concurrentes. Cada respuesta tiene su columna de texto, incluidas opciones de convivencia y cada dato de las personas de retiro; no se almacena la ficha entera en JSON. UUID por envío para reintentos idempotentes.
+
+`POST /api/matriculas/verificar-aislamiento/` es una comprobación de solo lectura, protegida por la clave de personal y disponible **solo en Preview**. Dado un comprobante ficticio devuelve si está en el esquema Preview y si está en `public` de esa conexión. No devuelve datos de la ficha ni credenciales. Las pruebas comprueban `inPreview=true` e `inProductionNamespace=false`.
+
+**Límite de la verificación:** la separación por esquema está impuesta y comprobada por la aplicación. Las herramientas conectadas enmascaran las credenciales de la integración y no exponen las identidades de ramas físicas de Neon; la consola web no estuvo disponible. No se afirma que se haya verificado una separación física de proyectos/ramas o permisos mínimos de base. Los esquemas impiden mezclar datos por las rutas de esta aplicación; un rol propietario puede consultar otros esquemas. Si se exige aislamiento mediante credenciales/ramas físicas, validar la configuración en Neon y asignar roles distintos con permisos mínimos. No se modificó la conexión de Producción ni se desplegó este PR allí.
+
+## Seguridad y dependencias
+
+Se actualizaron Next.js/ESLint Next a **16.4.6**, React/React DOM/RSC a **19.3.1**, vinext a **1.4.6**, Vite a **8.3.8**, plugin RSC a **0.5.37**, Cloudflare Vite a **1.69.1**, Wrangler a **4.163.0** y sus tipos compatibles. Las actualizaciones son las necesarias para quitar avisos del árbol de producción y desarrollo. `fflate` se fija mediante override a **0.7.5**, parche compatible de la rama 0.7 requerido por Satori; evita la regresión a vinext 0.2.1 que proponía audit force. Se actualizaron las dependencias transitivas compatibles sin usar `--force` ni ignorar peers.
+
+`npm audit` completo: **0 vulnerabilidades** (incluido desarrollo). Se comprobaron compilaciones Next.js y vinext tras actualizar.
+
+CSV en `/personal/matriculas/`: elegir/quitar/reordenar columnas, clave `MATRICULA_EXPORT_TOKEN` validada en servidor, valores SQL parametrizados, lista fija de columnas, BOM UTF-8, comillas escapadas, fórmulas neutralizadas y `no-store`. No se guarda la clave en URL ni almacenamiento del navegador. Máximo 10.000 registros; excederlo falla explícitamente sin truncar datos. La clave compartida no reemplaza cuentas nominativas/auditoría individual.
+
+## Pendientes ajenos a estos cambios
+
+- Configurar y distribuir de forma segura `MATRICULA_EXPORT_TOKEN` en Production antes de habilitar exportaciones; Preview ya tiene una clave limitada a esta rama. No se incluyó ningún secreto en Git.
+- El rol de inicialización necesita CREATE SCHEMA/TABLE y ALTER TABLE, además de INSERT/SELECT. Para permisos mínimos, provisionar esquema/columnas con rol de migración y adaptar la inicialización antes de restringir el rol de aplicación.
+- El enlace «EXTRACTO DEL REGLAMENTO INTERNO» aún abre el reglamento completo: falta el archivo específico.
+- Vercel Authentication sigue protegiendo los dominios Vercel según la configuración existente. Confirmar el dominio público para la apertura de matrícula. No se cambió protección ni se concedió acceso público.
+- Las fichas ficticias de la primera ronda no se eliminaron ni trasladaron; no se confundieron con datos reales para una limpieza automática.
+- GitHub Pages sigue como publicación manual y deriva el guardado al sitio Vercel. Nunca ejecuta estas rutas de servidor.
+
+## Evidencia de pruebas
+
+- 11 pruebas unitarias: validación compartida, obligatoriedad, suplente IPA, resolución de retiro, negativos/No aplica, CSV y destinos de datos separados.
+- `npm run build:pages`: Next.js y TypeScript aprobados.
+- `npm run build`: vinext aprobado.
+- `npm run lint`: sin errores; 12 advertencias preexistentes por imágenes HTML.
+- Navegador local: título y desplazamiento, convivencia con selección conservada, campos obligatorios, ambas listas por rol, suplente IPA, retiro precargado y botón verde de mayor tamaño. Error de conexión simulado exclusivamente para comprobar conservación de la ficha; la prueba de Preview usa Neon real.
+- `scripts/matricula-smoke.ts`: prueba explícita con ficha ficticia, lectura posterior CSV, orden/descarga, acceso denegado, reintento idempotente y comprobación del aislamiento. Requiere `MATRICULA_SMOKE=1`, `MATRICULA_TEST_URL`, `MATRICULA_EXPORT_TOKEN` y, si aplica, `MATRICULA_TEST_SHARE_URL`. Escribe una ficha por ejecución. El navegador de pruebas permite `MATRICULA_TEST_IGNORE_HTTPS_ERRORS=1` para el certificado del proxy de este entorno; no cambia TLS de la aplicación.
+
+Resultado de la nueva prueba real: pendiente del Preview de esta revisión.
