@@ -1,5 +1,6 @@
 'use client';
 
+import { enrollmentCourses } from '@/lib/matricula/fields';
 import { fromForm, validate } from '@/lib/matricula/validation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
@@ -9,13 +10,6 @@ const schoolRegulationsUrl = 'https://wwwfs.mineduc.cl/Archivos/infoescuelas/doc
 
 const enrollmentStaff = ['Paula Santander', 'Sandy Cadín', 'Jeannette Montanares', 'Jaime Villalobos']
   .map((name) => ({ value: name, label: name }));
-
-const enrollmentCourses = [
-  'Pre-kínder',
-  'Kínder',
-  ...Array.from({ length: 8 }, (_, index) => index + 1)
-    .flatMap((grade) => ['A', 'B'].map((section) => `${grade}°${section}`)),
-];
 
 const enrollmentDateFormat = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'America/Santiago',
