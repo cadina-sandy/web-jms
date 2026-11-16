@@ -656,7 +656,6 @@ export default function ReservationSteps() {
     if (!form) return;
     form.querySelectorAll('[data-field-error]').forEach(node => node.remove());
     form.querySelectorAll('[aria-invalid]').forEach(node => { node.removeAttribute('aria-invalid'); node.removeAttribute('aria-errormessage'); });
-    let first: HTMLElement | null = null;
     for (const [name, text] of Object.entries(errors)) {
       const pickup = /^retiro(\d+)(Nombre|Telefono|RutNumero|RutDigito)$/.exec(name);
       const suffix: Record<string, string> = { Nombre: 'nombre', Telefono: 'telefono', RutNumero: 'rutNumero', RutDigito: 'rutDigito' };
@@ -668,8 +667,8 @@ export default function ReservationSteps() {
       element.setAttribute('aria-invalid', 'true'); element.setAttribute('aria-errormessage', error.id);
       element.insertAdjacentElement('afterend', error);
       const details = element.closest('details'); if (details) details.open = true;
-      if (!first) first = element;
     }
+    const first = form.querySelector<HTMLElement>('[aria-invalid="true"]');
     first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     first?.focus({ preventScroll: true });
   }
@@ -682,7 +681,7 @@ export default function ReservationSteps() {
     submissionId.current ??= crypto.randomUUID();
     setBusy(true); setMessage('');
     try {
-      const response = await fetch('/api/matriculas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: submissionId.current, answers }) });
+      const response = await fetch('/api/matriculas/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: submissionId.current, answers }) });
       const result = await response.json() as { id?: string; errors?: Record<string, string>; error?: string };
       if (!response.ok) { if (result.errors) displayErrors(result.errors); setMessage(result.error || 'Revisa los campos indicados.'); return; }
       setSaved(true); setMessage(`Matrícula guardada. Comprobante: ${result.id}`);

@@ -9,7 +9,7 @@ const token = process.env.MATRICULA_EXPORT_TOKEN;
 assert.ok(base && token, 'Configura MATRICULA_TEST_URL y MATRICULA_EXPORT_TOKEN');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] });
 try {
-  const page = await browser.newPage({ viewport: {width: 1280, height: 900} });
+  const page = await browser.newPage({ ignoreHTTPSErrors: process.env.MATRICULA_TEST_IGNORE_HTTPS_ERRORS === '1', viewport: {width: 1280, height: 900} });
   const failures: string[] = [];
   page.on('pageerror', error => failures.push(error.message));
   await page.goto(process.env.MATRICULA_TEST_SHARE_URL || base);
@@ -26,7 +26,7 @@ try {
     else if (await first.evaluate(node => node.tagName) === 'SELECT') await first.selectOption(value);
     else await first.fill(value);
   }
-  const saved = page.waitForResponse(response => new URL(response.url()).pathname.replace(/\/$/, '') === '/api/matriculas' && response.request().method() === 'POST');
+  const saved = page.waitForResponse(response => new URL(response.url()).pathname.replace(/\/$/, '') === '/api/matriculas' && response.status() !== 308 && response.status() !== 307 && response.request().method() === 'POST');
   await page.getByRole('button', {name: 'Guardar Matrícula', exact: true}).click();
   const response = await saved;
   assert.equal(response.status(), 201, await response.text());
@@ -35,11 +35,10 @@ try {
   console.log('Guardar Matrícula → API → Neon → comprobante: OK', id);
   const payload = response.request().postDataJSON();
   const statuses = await page.evaluate(async ({payload, token}) => {
-    const post = (path: string, body: unknown, auth?: string) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: `Bearer ${auth}` } : {}) }, body: JSON.stringify(body) });
-    const duplicate = await post('/api/matriculas', payload);
-    const unauthorized = await post('/api/matriculas/exportar', {columns:['id']}, 'incorrecta');
-    const invalidColumns = await post('/api/matriculas/exportar', {columns:['nombres; DROP TABLE matriculas_2027']}, token);
-    const exported = await post('/api/matriculas/exportar', {columns:['id','curso','nombres','apoderadoCorreoDominioOtro','correoUsuario']}, token);
+    const duplicate = await fetch('/api/matriculas/', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const unauthorized = await fetch('/api/matriculas/exportar/', {method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer incorrecta'},body:JSON.stringify({columns:['id']})});
+    const invalidColumns = await fetch('/api/matriculas/exportar/', {method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({columns:['nombres; DROP TABLE matriculas_2027']})});
+    const exported = await fetch('/api/matriculas/exportar/', {method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({columns:['id','curso','nombres','apoderadoCorreoDominioOtro','correoUsuario']})});
     return {duplicate: duplicate.status, unauthorized: unauthorized.status, invalidColumns: invalidColumns.status, exported: exported.status, csv: await exported.text()};
   }, {payload, token});
   assert.equal(statuses.duplicate, 200); assert.equal(statuses.unauthorized, 401); assert.equal(statuses.invalidColumns, 400); assert.equal(statuses.exported, 200);

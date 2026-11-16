@@ -19,7 +19,7 @@ export default function ExportMatriculas() {
   async function download() {
     setBusy(true); setMessage('');
     try {
-      const response = await fetch('/api/matriculas/exportar', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ columns: selected }) });
+      const response = await fetch('/api/matriculas/exportar/', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ columns: selected }) });
       if (!response.ok) { setMessage((await response.json() as { error: string }).error); return; }
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement('a'); link.href = url; link.download = 'matriculas-2027.csv'; link.click();
