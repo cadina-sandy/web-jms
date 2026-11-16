@@ -1,4 +1,4 @@
-import { fields, householdOptions, type Answers } from './fields';
+import { enrollmentCourses, fields, householdOptions, type Answers } from './fields';
 
 export function fromForm(data: FormData): Answers {
   const answers: Answers = {};
@@ -60,8 +60,7 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
     const date = answers[name as keyof Answers];
     if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date)) || new Date(date).toISOString().slice(0, 10) !== date)) errors[name] = 'Ingresa una fecha válida.';
   }
-  const courses = ['Pre-kínder', 'Kínder', ...Array.from({length: 8}, (_, i) => ['A', 'B'].map(s => `${i + 1}°${s}`)).flat()];
-  if (answers.curso && !courses.includes(answers.curso)) errors.curso = 'Selecciona un curso válido.';
+  if (answers.curso && !enrollmentCourses.includes(answers.curso)) errors.curso = 'Selecciona un curso válido.';
   for (const [name, choice, detail] of [
     ['emergenciaContacto', 'otro', 'emergenciaContactoOtro'], ['funcionarioMatricula', 'otro', 'funcionarioMatriculaOtro'],
     ['saludTipoPrevision', 'otra', 'saludOtraPrevision'], ['saludTieneDiagnostico', 'si', 'saludDetalleDiagnostico'],
