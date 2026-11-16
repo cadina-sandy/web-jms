@@ -672,7 +672,12 @@ function PhotoConsentFields({
 }
 
 export default function ReservationSteps() {
-  const [open, setOpen] = useState(false);
+  const [enrollmentVersion, setEnrollmentVersion] = useState(0);
+  return <EnrollmentForm key={enrollmentVersion} initiallyOpen={enrollmentVersion > 0} onNewEnrollment={() => setEnrollmentVersion(version => version + 1)} />;
+}
+
+function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boolean; onNewEnrollment: () => void }) {
+  const [open, setOpen] = useState(initiallyOpen);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState('');
@@ -738,8 +743,8 @@ export default function ReservationSteps() {
     } catch { setMessage('No se pudo conectar. Tu ficha sigue aquí; intenta nuevamente.'); }
     finally { setBusy(false); }
   }
-  const [enrollmentDate, setEnrollmentDate] = useState<string | null>(null);
-  const [consentDate, setConsentDate] = useState('');
+  const [enrollmentDate, setEnrollmentDate] = useState<string | null>(() => initiallyOpen ? enrollmentDateFormat.format(new Date()) : null);
+  const [consentDate, setConsentDate] = useState(enrollmentDate ?? '');
   const [studentFirstName, setStudentFirstName] = useState('');
   const [studentFirstSurname, setStudentFirstSurname] = useState('');
   const [studentSecondSurname, setStudentSecondSurname] = useState('');
@@ -1026,6 +1031,7 @@ export default function ReservationSteps() {
               </fieldset>
               <button className="save-enrollment" type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
               <p role="status" aria-live="polite">{message}</p>
+              {saved && <button className="save-enrollment" type="button" onClick={onNewEnrollment}>Hacer Nueva Matrícula</button>}
             </form>
           </section>
         </div>

@@ -82,3 +82,9 @@ La prueba deja exclusivamente datos ficticios; no se eliminó ni modificó ningu
 Los errores visibles se vuelven a validar al cambiar los datos. Se retira el borde rojo y el mensaje cuando el campo pasa a ser válido; los demás errores pendientes se conservan. No se marcan campos nuevos mientras se escribe ni se desplaza el foco durante la corrección. Al guardar se sigue validando toda la ficha.
 
 Regresión en `tests/matricula-validation.browser.ts`: una ficha completa salvo un dato marca únicamente ese campo; corregir uno de dos errores mantiene el otro; un teléfono incompleto sigue marcado hasta tener nueve dígitos; el foco no salta. La prueba aborta cualquier solicitud de guardado y no escribe datos. Ejecutar contra el servidor local en puerto 3002 con `node --import tsx tests/matricula-validation.browser.ts` (o configurar `MATRICULA_TEST_URL`).
+
+## Nueva matrícula después de guardar
+
+Después del mensaje de guardado correcto aparece **Hacer Nueva Matrícula**. Abre una ficha nueva, limpia todos los datos y estados de los subformularios, toma la fecha actual de Santiago y coloca el foco en el título. La siguiente matrícula genera un UUID nuevo; los reintentos antes del éxito conservan el UUID anterior. El botón no aparece si falta información o falla el guardado.
+
+Regresión `tests/new-enrollment.browser.ts`: fallo recuperable, éxito, reinicio completo (incluidos convivencia, identificación, correos personalizados y personas de retiro), foco/fecha y segunda matrícula con comprobante distinto. Usa respuestas de guardado simuladas en el navegador, sin escribir en Neon. Ejecutar contra el servidor local en puerto 3003 con `node --import tsx tests/new-enrollment.browser.ts`, o indicar `MATRICULA_TEST_URL`.
