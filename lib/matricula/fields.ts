@@ -165,3 +165,10 @@ export const fields = [
 export type Field = typeof fields[number];
 export type Answers = Partial<Record<Field, string>>;
 export const householdOptions = ["Solo madre", "Solo padre", "Ambos padres", "Hermano/os", "Abuela/o", "Primos", "Otro"];
+
+export const enrollmentCourses = [
+  'Pre-kínder',
+  'Kínder',
+  ...Array.from({ length: 8 }, (_, index) => index + 1)
+    .flatMap((grade) => ['A', 'B'].map((section) => `${grade}°${section}`)),
+];
