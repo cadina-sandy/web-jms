@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { fields } from '@/lib/matricula/fields';
 import { getSql, quote } from '@/lib/matricula/db';
+import { labels } from '@/lib/matricula/labels';
 import { csv } from '@/lib/matricula/csv';
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
@@ -18,6 +19,6 @@ export async function POST(request: Request) {
   try {
     const rows = await getSql().query(`SELECT ${columns.map(quote).join(',')} FROM matriculas_2027 ORDER BY created_at, id LIMIT 10001`);
     if (rows.length > 10000) return Response.json({ error: 'Más de 10000 fichas. Solicita una exportación por lotes a administración.' }, { status: 413 });
-    return new Response(csv(columns, rows), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="matriculas-2027.csv"', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
+    return new Response(csv(columns, rows, labels), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="matriculas-2027.csv"', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
   } catch { return Response.json({ error: 'No se pudo exportar. Verifica que exista una matrícula guardada.' }, { status: 503 }); }
 }

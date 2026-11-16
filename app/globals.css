@@ -201,7 +201,7 @@
   border: 0;
 }
 
-.reservation-form fieldset label {
+.reservation-form fieldset:not(.enrollment-inputs) label {
   display: inline-flex;
   align-items: center;
   gap: 6px;

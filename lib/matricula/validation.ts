@@ -3,6 +3,7 @@ import { fields, householdOptions, type Answers } from './fields';
 export function fromForm(data: FormData): Answers {
   const answers: Answers = {};
   for (const field of fields) answers[field] = String(data.get(field) ?? '').trim();
+  answers.pertenecePuebloOriginario = data.has('pertenecePuebloOriginario') ? 'si' : 'no';
   householdOptions.forEach((option, i) => { answers[`vive${i}` as keyof Answers] = data.getAll('conQuienVive').includes(option) ? 'si' : 'no'; });
   for (let i = 0; i < 10; i++) {
     for (const [suffix, source] of [['Nombre', 'nombre'], ['Telefono', 'telefono'], ['RutNumero', 'rutNumero'], ['RutDigito', 'rutDigito']]) {
@@ -63,5 +64,6 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
     const keys = ['Nombre', 'Telefono', 'RutNumero', 'RutDigito'].map(s => `retiro${i}${s}`);
     if (keys.some(k => answers[k as keyof Answers])) keys.forEach(requireField);
   }
+  if (answers.apoderadoSuplenteNombreCompleto || answers.apoderadoSuplenteCelular || answers.apoderadoSuplenteRutNumero) ['apoderadoSuplenteNombreCompleto', 'apoderadoSuplenteParentesco', 'apoderadoSuplenteCelular', 'apoderadoSuplenteRutNumero', 'apoderadoSuplenteRutDigito'].forEach(requireField);
   return { answers, errors };
 }
