@@ -60,7 +60,7 @@ export default function ExportMatriculas() {
             </select>
           </label>
         </p>
-        <p>Campos del CSV{' · '}<strong>Todos los campos</strong></p>
+        <p>Campos del CSV{' · '}<strong>Todos los campos con datos</strong></p>
         <button type="submit" disabled={!token || busy}>{busy ? 'Exportando…' : 'Descargar CSV'}</button>
         <p role="status">{message}</p>
       </form>
