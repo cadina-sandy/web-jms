@@ -47,3 +47,16 @@ test('sin suplente exige selección de retiro válida, no detalles ocultos', () 
   assert.deepEqual(result.errors, {}); assert.equal(result.answers.apoderadoSuplenteIpa, '');
   assert.ok(validate({...fixture, apoderadoSuplenteAplica:'no-aplica'}).errors.retiro1Origen);
 });
+
+test('pueblo originario exige una respuesta explícita y conserva Sí o No', () => {
+  const form = new FormData();
+  assert.equal(fromForm(form).pertenecePuebloOriginario, '');
+  for (const answer of ['si', 'no']) {
+    form.set('pertenecePuebloOriginario', answer);
+    assert.equal(fromForm(form).pertenecePuebloOriginario, answer);
+    assert.equal(validate({ ...fixture, pertenecePuebloOriginario: answer }).errors.pertenecePuebloOriginario, undefined);
+  }
+  for (const answer of ['', 'otro']) {
+    assert.ok(validate({ ...fixture, pertenecePuebloOriginario: answer }).errors.pertenecePuebloOriginario);
+  }
+});

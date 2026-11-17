@@ -57,7 +57,13 @@ try {
   const response = await saved;
   assert.equal(response.status(), 201, await response.text());
   const {id} = await response.json();
-  await page.getByRole('status').filter({hasText: 'Matrícula guardada.'}).waitFor();
+  const receiptStatus = page.getByRole('status').filter({hasText: 'Matrícula guardada.'});
+  await page.locator('.enrollment-receipt-popup').waitFor({ state: 'visible' });
+  await page.locator('.enrollment-receipt-popup').waitFor({ state: 'hidden', timeout: 6500 });
+  await receiptStatus.waitFor({ state: 'visible' });
+  assert.ok((await receiptStatus.textContent())?.includes(id));
+  const newEnrollment = page.getByRole('button', {name: 'Hacer Nueva Matrícula', exact: true});
+  assert.equal(await newEnrollment.evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(11, 87, 164)');
   console.log('Guardar Matrícula → API → Neon → comprobante: OK', id);
   const payload = response.request().postDataJSON();
   const statuses = await page.evaluate(async ({payload, token}) => {
