@@ -24,7 +24,7 @@ export async function save(answers: Answers, id: string) {
     sql.query('SELECT pg_advisory_xact_lock(hashtext($1))', [target]),
     sql.query(`CREATE SCHEMA IF NOT EXISTS ${quote(target)}`),
     sql.query(schema(target)),
-    sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS receipt_sent_at timestamptz, ${fields.map(field => `ADD COLUMN IF NOT EXISTS ${quote(field)} text NOT NULL DEFAULT ''`).join(', ')}`),
+    sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS receipt_sent_at timestamptz, ADD COLUMN IF NOT EXISTS receipt_attempted_at timestamptz, ${fields.map(field => `ADD COLUMN IF NOT EXISTS ${quote(field)} text NOT NULL DEFAULT ''`).join(', ')}`),
     sql.query(`INSERT INTO ${table} (id, ${fields.map(quote).join(',')}) VALUES (${values.map((_, i) => `$${i + 1}`).join(',')}) ON CONFLICT (id) DO NOTHING RETURNING id`, values),
     sql.query(`SELECT
       CASE WHEN "apoderadoCorreoUsuario" <> '' AND "apoderadoCorreoDominio" <> ''
@@ -46,4 +46,16 @@ export async function markReceiptSent(id: string) {
     `UPDATE ${tableName(databaseSchema())} SET receipt_sent_at = now() WHERE id = $1 AND receipt_sent_at IS NULL`,
     [id],
   );
+}
+
+export async function claimReceiptDelivery(id: string) {
+  // SMTP has no idempotency key. Claim the send once before contacting Gmail.
+  const rows = await getSql().query(
+    `UPDATE ${tableName(databaseSchema())} SET receipt_attempted_at = now()
+     WHERE id = $1 AND receipt_sent_at IS NULL AND receipt_attempted_at IS NULL
+       AND created_at > now() - interval '23 hours'
+     RETURNING id`,
+    [id],
+  );
+  return rows.length === 1;
 }
