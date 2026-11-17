@@ -11,6 +11,10 @@ export function getSql() {
 }
 // Identifiers come exclusively from the committed allowlist, never from requests.
 export const quote = (name: string) => `"${name.replaceAll('"', '""')}"`;
+// Older tables get the column on the next save. Reads also work before that first save.
+export const readEnrollmentColumn = (name: string) => name === 'comprobacionDireccion'
+  ? `COALESCE(to_jsonb(enrollment)->>'comprobacionDireccion', '') AS "comprobacionDireccion"`
+  : quote(name);
 export const schema = (target: string) => `CREATE TABLE IF NOT EXISTS ${tableName(target)} (
   id uuid PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now(),
   ${fields.map(field => `${quote(field)} text NOT NULL DEFAULT ''`).join(',\n')}
@@ -32,13 +36,21 @@ export async function save(answers: Answers, id: string) {
           THEN "apoderadoCorreoDominioOtro" ELSE "apoderadoCorreoDominio" END
         ELSE '' END AS recipient,
       "fechaMatricula" AS date, curso AS course,
+      "comprobacionDireccion",
       receipt_sent_at IS NOT NULL AS sent,
       created_at > now() - interval '23 hours' AS "retryAllowed"
       FROM ${table} WHERE id = $1`, [id]),
   ]);
-  const row = result[5][0] as EnrollmentReceipt | undefined;
+  const row = result[5][0] as (EnrollmentReceipt & { comprobacionDireccion: string }) | undefined;
   if (!row) throw new Error('Ficha guardada no encontrada');
   return { id, created: result[4].length > 0, receipt: row };
+}
+
+export async function markAddressFound(id: string) {
+  await getSql().query(
+    `UPDATE ${tableName(databaseSchema())} SET "comprobacionDireccion" = $2 WHERE id = $1`,
+    [id, 'Dirección encontrada'],
+  );
 }
 
 export async function markReceiptSent(id: string) {

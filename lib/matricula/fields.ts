@@ -21,6 +21,7 @@ export const fields = [
   "blockOTorre",
   "departamento",
   "comuna",
+  "comprobacionDireccion",
   "vive0",
   "vive1",
   "vive2",

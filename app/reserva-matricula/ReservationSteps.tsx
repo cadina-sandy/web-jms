@@ -681,18 +681,19 @@ function PhotoConsentFields({
   );
 }
 
-export default function ReservationSteps() {
+export default function ReservationSteps({ checksAddresses = false }: { checksAddresses?: boolean }) {
   const [enrollmentVersion, setEnrollmentVersion] = useState(0);
-  return <EnrollmentForm key={enrollmentVersion} initiallyOpen={enrollmentVersion > 0} onNewEnrollment={() => setEnrollmentVersion(version => version + 1)} />;
+  return <EnrollmentForm key={enrollmentVersion} initiallyOpen={enrollmentVersion > 0} checksAddresses={checksAddresses} onNewEnrollment={() => setEnrollmentVersion(version => version + 1)} />;
 }
 
-function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boolean; onNewEnrollment: () => void }) {
+function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { initiallyOpen: boolean; checksAddresses: boolean; onNewEnrollment: () => void }) {
   const [open, setOpen] = useState(initiallyOpen);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showReceiptPopup, setShowReceiptPopup] = useState(false);
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [receiptEmail, setReceiptEmail] = useState<'sent' | 'failed' | 'unavailable' | undefined>();
+  const [addressStatus, setAddressStatus] = useState('');
   const [message, setMessage] = useState('');
   const submissionId = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -761,10 +762,11 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
     setBusy(true); setMessage('');
     try {
       const response = await fetch('/api/matriculas/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: submissionId.current, answers }) });
-      const result = await response.json() as { id?: string; receiptEmail?: 'sent' | 'failed' | 'unavailable'; errors?: Record<string, string>; error?: string };
+      const result = await response.json() as { id?: string; receiptEmail?: 'sent' | 'failed' | 'unavailable'; addressStatus?: string; errors?: Record<string, string>; error?: string };
       if (!response.ok) { if (result.errors) displayErrors(result.errors); setMessage(result.error || 'Revisa los campos indicados.'); return; }
       setReceiptId(result.id ?? submissionId.current);
       setReceiptEmail(result.receiptEmail);
+      setAddressStatus(result.addressStatus ?? '');
       setSaved(true);
       setShowReceiptPopup(true);
       setMessage('Matrícula guardada.');
@@ -917,6 +919,12 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
                   </select>
                 </label>
               </div>
+              {checksAddresses && (
+                <small>
+                  Al guardar, consultamos calle, número y comuna con <a href="https://www.geoapify.com/">Geoapify</a>.
+                  Si la dirección no aparece, el colegio podrá revisarla. Datos de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
+                </small>
+              )}
               <div className="student-household-fields">
                 <StudentHouseholdField />
                 <label>
@@ -1067,6 +1075,7 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
                   <>
                     <strong>{message}</strong>
                     <small>(Comprobante: {receiptId})</small>
+                    {addressStatus && <small>{addressStatus}.</small>}
                     {receiptEmail === 'sent' && <small>Enviamos el comprobante al correo del apoderado.</small>}
                     {receiptEmail && receiptEmail !== 'sent' && <small>No pudimos enviar el correo. Guarda el número de comprobante que aparece aquí.</small>}
                   </>

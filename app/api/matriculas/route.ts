@@ -1,6 +1,7 @@
 import { validate } from '@/lib/matricula/validation';
-import { markReceiptSent, save } from '@/lib/matricula/db';
+import { markAddressFound, markReceiptSent, save } from '@/lib/matricula/db';
 import { sendEnrollmentReceipt } from '@/lib/matricula/receipt';
+import { isAddressFound } from '@/lib/matricula/address';
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
   if (request.headers.get('origin') !== new URL(request.url).origin) return Response.json({ error: 'Origen no permitido.' }, { status: 403 });
@@ -13,7 +14,18 @@ export async function POST(request: Request) {
   if (Object.keys(errors).length) return Response.json({ errors }, { status: 422 });
   if (typeof body.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id)) return Response.json({ error: 'Identificador inválido.' }, { status: 400 });
   try {
+    const geoapifyKey = process.env.GEOAPIFY_API_KEY?.trim();
+    answers.comprobacionDireccion = geoapifyKey ? 'Dirección pendiente de revisión' : '';
     const result = await save(answers, body.id);
+    let addressStatus = result.receipt.comprobacionDireccion;
+    if (geoapifyKey && result.created && await isAddressFound(answers.direccion ?? '', answers.comuna ?? '', geoapifyKey)) {
+      try {
+        await markAddressFound(result.id);
+        addressStatus = 'Dirección encontrada';
+      } catch {
+        console.error('No se pudo actualizar la comprobación de la dirección.');
+      }
+    }
     const receiptEmail = await sendEnrollmentReceipt(result.id, result.receipt);
     if (receiptEmail === 'sent' && !result.receipt.sent) {
       try {
@@ -23,7 +35,7 @@ export async function POST(request: Request) {
       }
     }
     return Response.json(
-      { id: result.id, created: result.created, receiptEmail },
+      { id: result.id, created: result.created, receiptEmail, addressStatus },
       { status: result.created ? 201 : 200, headers: { 'Cache-Control': 'no-store' } },
     );
   } catch {
