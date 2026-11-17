@@ -675,6 +675,7 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [receiptId, setReceiptId] = useState<string | null>(null);
+  const [receiptEmail, setReceiptEmail] = useState<'sent' | 'failed' | 'unavailable' | undefined>();
   const [message, setMessage] = useState('');
   const submissionId = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -732,9 +733,10 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
     setBusy(true); setMessage('');
     try {
       const response = await fetch('/api/matriculas/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: submissionId.current, answers }) });
-      const result = await response.json() as { id?: string; errors?: Record<string, string>; error?: string };
+      const result = await response.json() as { id?: string; receiptEmail?: 'sent' | 'failed' | 'unavailable'; errors?: Record<string, string>; error?: string };
       if (!response.ok) { if (result.errors) displayErrors(result.errors); setMessage(result.error || 'Revisa los campos indicados.'); return; }
       setReceiptId(result.id ?? submissionId.current);
+      setReceiptEmail(result.receiptEmail);
       setSaved(true); setMessage('Matrícula guardada.');
     } catch { setMessage('No se pudo conectar. Tu ficha sigue aquí; intenta nuevamente.'); }
     finally { setBusy(false); }
@@ -1027,7 +1029,14 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
               </fieldset>
               <button className="save-enrollment" type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
               <div role="status" aria-live="polite" className={saved ? 'enrollment-success' : undefined}>
-                {saved ? <><strong>{message}</strong><small>(Comprobante: {receiptId})</small></> : message}
+                {saved ? (
+                  <>
+                    <strong>{message}</strong>
+                    <small>(Comprobante: {receiptId})</small>
+                    {receiptEmail === 'sent' && <small>Enviamos el comprobante al correo del apoderado.</small>}
+                    {receiptEmail && receiptEmail !== 'sent' && <small>No pudimos enviar el correo. Guarda el número de comprobante que aparece aquí.</small>}
+                  </>
+                ) : message}
               </div>
               {saved && <button className="save-enrollment" type="button" onClick={onNewEnrollment}>Hacer Nueva Matrícula</button>}
             </form>
