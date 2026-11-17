@@ -4,7 +4,8 @@ import { isAddressFound } from '../lib/matricula/address';
 
 const result = {
   country_code: 'cl', street: 'Avenida Macul', housenumber: '3240',
-  city: 'Santiago', municipality: 'Macul', rank: { match_type: 'full_match' },
+  city: 'Santiago', municipality: 'Macul', result_type: 'building',
+  rank: { match_type: 'full_match', confidence_building_level: 1 },
 };
 
 test('solo consulta calle, número y comuna, y reconoce una coincidencia completa', async t => {
@@ -24,7 +25,9 @@ test('solo consulta calle, número y comuna, y reconoce una coincidencia complet
 test('coincidencias parciales, comuna o número distinto y fallas quedan pendientes', async t => {
   const request = t.mock.method(globalThis, 'fetch', async () => Response.json({
     results: [
-      { ...result, rank: { match_type: 'match_by_street' } },
+      { ...result, rank: { ...result.rank, match_type: 'match_by_street' } },
+      { ...result, result_type: 'street' },
+      { ...result, rank: { ...result.rank, confidence_building_level: 0.6 } },
       { ...result, housenumber: '3250' },
       { ...result, municipality: 'Peñalolén' },
     ],

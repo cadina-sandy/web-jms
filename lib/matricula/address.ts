@@ -7,7 +7,8 @@ type GeocodingResult = {
   county?: string;
   district?: string;
   suburb?: string;
-  rank?: { match_type?: string };
+  result_type?: string;
+  rank?: { match_type?: string; confidence_building_level?: number };
 };
 
 function normalize(value: string | undefined) {
@@ -40,6 +41,8 @@ export async function checkAddress(address: string, commune: string, apiKey: str
     const { results } = await response.json() as { results?: GeocodingResult[] };
     return Array.isArray(results) && results.some(result =>
       result?.rank?.match_type === 'full_match' &&
+      result.result_type === 'building' &&
+      (result.rank.confidence_building_level ?? 0) >= 0.95 &&
       result.country_code === 'cl' &&
       normalizeStreet(result.street) === normalizeStreet(street) &&
       normalize(result.housenumber) === normalize(houseNumber) &&
