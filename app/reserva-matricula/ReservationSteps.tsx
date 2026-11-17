@@ -732,19 +732,19 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
   }
   function recheckShownErrors(event: React.FormEvent<HTMLFormElement>) {
     const field = event.target;
-    const emailField = field instanceof HTMLInputElement && field.hasAttribute('data-email-part') && field.value.includes('@')
-      ? field.name
-      : null;
-    if (!emailField && !Object.keys(shownErrors.current).length) return;
+    const hasInvalidEmail = field instanceof HTMLInputElement && field.hasAttribute('data-email-part') && field.value.includes('@');
+    if (!hasInvalidEmail && !Object.keys(shownErrors.current).length && validationFrame.current === null) return;
     if (validationFrame.current !== null) cancelAnimationFrame(validationFrame.current);
     validationFrame.current = requestAnimationFrame(() => {
       validationFrame.current = null;
       const form = formRef.current;
       if (!form) return;
       const { errors } = validate(fromForm(new FormData(form)));
-      const activeErrors = Object.keys(shownErrors.current);
-      if (emailField) activeErrors.push(emailField);
-      const remaining = Object.fromEntries(activeErrors
+      const activeErrors = new Set(Object.keys(shownErrors.current));
+      for (const input of form.querySelectorAll<HTMLInputElement>('input[data-email-part]')) {
+        if (input.value.includes('@')) activeErrors.add(input.name);
+      }
+      const remaining = Object.fromEntries([...activeErrors]
         .filter(name => errors[name])
         .map(name => [name, errors[name]]));
       displayErrors(remaining, false);
