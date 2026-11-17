@@ -124,7 +124,7 @@ export default function ExportMatriculas() {
           {token && <button type="button" disabled={!!busy} onClick={() => { setToken(''); setSearch(''); clearResults(); }}>Cerrar consulta</button>}
         </div>
         <p className="enrollment-admin-csv-note">Campos del CSV{' · '}<strong>Todos los campos con datos</strong></p>
-        {message && <p role="status">{message}</p>
+        {message && <p role="status">{message}</p>}
       </form>
 
       {listing && !record && (
