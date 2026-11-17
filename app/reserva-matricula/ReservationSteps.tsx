@@ -694,6 +694,43 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [receiptEmail, setReceiptEmail] = useState<'sent' | 'failed' | 'unavailable' | undefined>();
   const [addressStatus, setAddressStatus] = useState('');
+  const [address, setAddress] = useState('');
+  const [commune, setCommune] = useState('');
+  const [addressCheck, setAddressCheck] = useState<{ address: string; commune: string; message: string }>();
+  const streetAddress = address.trim();
+  const canCheckAddress = checksAddresses && Boolean(commune) && /\s(?:(?:n[°º.]|#)\s*)?\d{1,7}[a-z]?$/i.test(streetAddress);
+  const liveAddressMessage = canCheckAddress && addressCheck?.address === streetAddress && addressCheck.commune === commune
+    ? addressCheck.message : '';
+
+  useEffect(() => {
+    if (!canCheckAddress || saved) return;
+    const controller = new AbortController();
+    const show = (message: string) => {
+      if (!controller.signal.aborted) setAddressCheck({ address: streetAddress, commune, message });
+    };
+    const timeout = window.setTimeout(async () => {
+      show('Comprobando dirección…');
+      try {
+        const response = await fetch('/api/matriculas/comprobar-direccion/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: streetAddress, commune }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('No se pudo consultar la dirección.');
+        const result = await response.json() as { found: boolean };
+        show(result.found
+          ? 'Dirección encontrada.'
+          : 'No encontramos una coincidencia completa. Revisa la calle, el número y la comuna. Puedes guardar la ficha igual.');
+      } catch {
+        show('No pudimos comprobar la dirección en este momento. Puedes guardar la ficha igual.');
+      }
+    }, 750);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [canCheckAddress, streetAddress, commune, saved]);
   const [message, setMessage] = useState('');
   const submissionId = useRef<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -899,7 +936,9 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
               <div className="student-address-fields">
                 <label>
                   Dirección (Calle y Número)
-                  <input name="direccion" type="text" autoComplete="address-line1" />
+                  <input name="direccion" type="text" autoComplete="address-line1"
+                    value={address} onChange={(event) => setAddress(event.target.value)}
+                    aria-describedby={checksAddresses ? 'direccion-ayuda direccion-resultado' : undefined} />
                 </label>
                 <label>
                   Block o Torre
@@ -911,7 +950,8 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                 </label>
                 <label>
                   Comuna
-                  <select name="comuna" defaultValue="" autoComplete="address-level2">
+                  <select name="comuna" value={commune} onChange={(event) => setCommune(event.target.value)} autoComplete="address-level2"
+                    aria-describedby={checksAddresses ? 'direccion-ayuda direccion-resultado' : undefined}>
                     <option value="" disabled>Selecciona una comuna</option>
                     {comunasMetropolitanas.map((comuna) => (
                       <option key={comuna} value={comuna}>{comuna}</option>
@@ -920,10 +960,13 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                 </label>
               </div>
               {checksAddresses && (
-                <small>
-                  Al guardar, consultamos calle, número y comuna con <a href="https://www.geoapify.com/">Geoapify</a>.
-                  Si la dirección no aparece, el colegio podrá revisarla. Datos de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
-                </small>
+                <div>
+                  <small id="direccion-ayuda">
+                    Comprobamos calle, número y comuna con <a href="https://www.geoapify.com/">Geoapify</a>.
+                    Datos de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
+                  </small>
+                  <div id="direccion-resultado" role="status">{liveAddressMessage}</div>
+                </div>
               )}
               <div className="student-household-fields">
                 <StudentHouseholdField />
