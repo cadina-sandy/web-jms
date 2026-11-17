@@ -2,6 +2,7 @@ import 'server-only';
 import { neon } from '@neondatabase/serverless';
 import { databaseSchema, tableName } from './target';
 import { fields, type Answers } from './fields';
+import type { EnrollmentReceipt } from './receipt';
 
 export function getSql() {
   const url = process.env.MATRICULA_DATABASE_URL;
@@ -23,8 +24,26 @@ export async function save(answers: Answers, id: string) {
     sql.query('SELECT pg_advisory_xact_lock(hashtext($1))', [target]),
     sql.query(`CREATE SCHEMA IF NOT EXISTS ${quote(target)}`),
     sql.query(schema(target)),
-    sql.query(`ALTER TABLE ${table} ${fields.map(field => `ADD COLUMN IF NOT EXISTS ${quote(field)} text NOT NULL DEFAULT ''`).join(', ')}`),
+    sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS receipt_sent_at timestamptz, ${fields.map(field => `ADD COLUMN IF NOT EXISTS ${quote(field)} text NOT NULL DEFAULT ''`).join(', ')}`),
     sql.query(`INSERT INTO ${table} (id, ${fields.map(quote).join(',')}) VALUES (${values.map((_, i) => `$${i + 1}`).join(',')}) ON CONFLICT (id) DO NOTHING RETURNING id`, values),
+    sql.query(`SELECT
+      CASE WHEN "apoderadoCorreoUsuario" <> '' AND "apoderadoCorreoDominio" <> ''
+        THEN "apoderadoCorreoUsuario" || '@' || CASE WHEN "apoderadoCorreoDominio" = 'otra'
+          THEN "apoderadoCorreoDominioOtro" ELSE "apoderadoCorreoDominio" END
+        ELSE '' END AS recipient,
+      "fechaMatricula" AS date, curso AS course,
+      receipt_sent_at IS NOT NULL AS sent,
+      created_at > now() - interval '23 hours' AS "retryAllowed"
+      FROM ${table} WHERE id = $1`, [id]),
   ]);
-  return { id, created: result[4].length > 0 };
+  const row = result[5][0] as EnrollmentReceipt | undefined;
+  if (!row) throw new Error('Ficha guardada no encontrada');
+  return { id, created: result[4].length > 0, receipt: row };
+}
+
+export async function markReceiptSent(id: string) {
+  await getSql().query(
+    `UPDATE ${tableName(databaseSchema())} SET receipt_sent_at = now() WHERE id = $1 AND receipt_sent_at IS NULL`,
+    [id],
+  );
 }
