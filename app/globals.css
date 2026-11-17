@@ -201,7 +201,7 @@
   border: 0;
 }
 
-.reservation-form fieldset label {
+.reservation-form fieldset:not(.enrollment-inputs) label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -616,3 +616,17 @@
   min-width: 0;
   width: 100%;
 }
+
+.enrollment-inputs { border: 0; padding: 0; margin: 0; min-width: 0; }
+.reservation-form .field-error { display: block; color: #a71919; font-size: .875rem; margin-top: .25rem; }
+.reservation-form [aria-invalid="true"] { outline: 2px solid #a71919; outline-offset: 2px; }
+
+#titulo-formulario { scroll-margin-top: 110px; }
+.reservation-form .save-enrollment { display: block; width: min(100%, 560px); min-height: 68px; margin: 2.5rem auto 1rem; padding: 18px 30px; border: 0; border-radius: 8px; background: #16733b; color: white; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
+.reservation-form .save-enrollment:hover { background: #10592d; }
+.reservation-form .save-enrollment:disabled { opacity: .65; cursor: default; }
+.enrollment-actor { width: min(100%, 560px); }
+
+.reservation-form .enrollment-success { box-sizing: border-box; width: min(100%, 560px); margin: 24px auto; padding: 24px 20px; border: 1px solid #8cc69e; border-radius: 8px; background: #e3f4e8; color: #10592d; text-align: center; }
+.enrollment-success strong { display: block; font-size: 1.3rem; }
+.enrollment-success small { display: block; margin-top: 8px; font-size: .75rem; overflow-wrap: anywhere; }
