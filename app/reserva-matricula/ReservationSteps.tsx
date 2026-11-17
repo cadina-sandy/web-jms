@@ -207,16 +207,28 @@ function IdentificationFields({ guardian = false, prefix = guardian ? 'apoderado
 }
 
 function NationalityField({ name }: { name: string }) {
+  const [country, setCountry] = useState('');
+  const isOther = country === 'otra';
+
   return (
-    <label>
-      Nacionalidad
-      <select name={name} defaultValue="">
-        <option value="" disabled>Selecciona un país</option>
-        {nationalityCountries.map((country) => (
-          <option key={country} value={country}>{country}</option>
-        ))}
-      </select>
-    </label>
+    <div>
+      <label>
+        Nacionalidad
+        <select name={isOther ? undefined : name} value={country} onChange={event => setCountry(event.target.value)}>
+          <option value="" disabled>Selecciona un país</option>
+          {nationalityCountries.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+          <option value="otra">Otra</option>
+        </select>
+      </label>
+      {isOther && (
+        <label>
+          Especifica la nacionalidad
+          <input name={name} type="text" />
+        </label>
+      )}
+    </div>
   );
 }
 
@@ -280,17 +292,21 @@ function EmailFields({ guardian = false }: { guardian?: boolean }) {
     <div className="student-email-field">
       <label htmlFor={emailId}>{label}{!guardian && ' (opcional)'}</label>
       <div className="student-email-fields">
-        <input id={emailId} name={guardian ? "apoderadoCorreoUsuario" : "correoUsuario"} type="text" inputMode="email" autoCapitalize="none" spellCheck={false} pattern="[^@\s]+" title="Escribe solo la parte anterior a la arroba" />
-        <select name={guardian ? "apoderadoCorreoDominio" : "correoDominio"} value={domain} onChange={event => setDomain(event.target.value)} aria-label={`Dominio de ${label.toLowerCase()}`}>
-          <option value="" disabled>Dominio</option>
-          <option value="gmail.com">@gmail.com</option>
-          <option value="hotmail.com">@hotmail.com</option>
-          <option value="yahoo.com">@yahoo.com</option>
-          <option value="otra">Otra</option>
-        </select>
+        <div>
+          <input id={emailId} name={guardian ? "apoderadoCorreoUsuario" : "correoUsuario"} type="text" inputMode="email" autoCapitalize="none" spellCheck={false} data-email-part title="Escribe solo la parte anterior a la arroba" />
+        </div>
+        <div>
+          <select name={guardian ? "apoderadoCorreoDominio" : "correoDominio"} value={domain} onChange={event => setDomain(event.target.value)} aria-label={`Dominio de ${label.toLowerCase()}`}>
+            <option value="" disabled>Dominio</option>
+            <option value="gmail.com">@gmail.com</option>
+            <option value="hotmail.com">@hotmail.com</option>
+            <option value="yahoo.com">@yahoo.com</option>
+            <option value="otra">Otra</option>
+          </select>
+        </div>
       </div>
       {domain === 'otra' && <label>Otro dominio (sin @)
-        <input name={guardian ? 'apoderadoCorreoDominioOtro' : 'correoDominioOtro'} type="text" placeholder="ejemplo.cl" autoCapitalize="none" spellCheck={false} />
+        <input name={guardian ? 'apoderadoCorreoDominioOtro' : 'correoDominioOtro'} type="text" placeholder="ejemplo.cl" autoCapitalize="none" spellCheck={false} data-email-part />
       </label>}
     </div>
   );
@@ -714,16 +730,21 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
     first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     first?.focus({ preventScroll: true });
   }
-  function recheckShownErrors() {
-    if (!Object.keys(shownErrors.current).length) return;
+  function recheckShownErrors(event: React.FormEvent<HTMLFormElement>) {
+    const field = event.target;
+    const emailField = field instanceof HTMLInputElement && field.hasAttribute('data-email-part') && field.value.includes('@')
+      ? field.name
+      : null;
+    if (!emailField && !Object.keys(shownErrors.current).length) return;
     if (validationFrame.current !== null) cancelAnimationFrame(validationFrame.current);
     validationFrame.current = requestAnimationFrame(() => {
       validationFrame.current = null;
       const form = formRef.current;
       if (!form) return;
       const { errors } = validate(fromForm(new FormData(form)));
-      // Recheck only errors already shown. Do not mark untouched fields while typing.
-      const remaining = Object.fromEntries(Object.keys(shownErrors.current)
+      const activeErrors = Object.keys(shownErrors.current);
+      if (emailField) activeErrors.push(emailField);
+      const remaining = Object.fromEntries(activeErrors
         .filter(name => errors[name])
         .map(name => [name, errors[name]]));
       displayErrors(remaining, false);

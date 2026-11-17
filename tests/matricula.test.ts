@@ -13,6 +13,17 @@ test('correo estudiante parcial o inválido se rechaza', () => {
   assert.ok(validate({...fixture, correoUsuario: 'hola'}).errors.correoDominio);
   assert.ok(validate({...fixture, correoUsuario: 'hola', correoDominio: 'otra', correoDominioOtro: '@mal'}).errors.correoDominioOtro);
 });
+test('la arroba se señala en el campo exacto de cada correo', () => {
+  const { errors } = validate({
+    ...fixture,
+    correoUsuario: 'estudiante@gmail.com', correoDominio: 'gmail.com',
+    apoderadoCorreoUsuario: 'apoderado@', apoderadoCorreoDominioOtro: '@ejemplo.cl',
+  });
+  assert.match(errors.correoUsuario, /anterior al @/);
+  assert.match(errors.apoderadoCorreoUsuario, /anterior al @/);
+  assert.match(errors.apoderadoCorreoDominioOtro, /sin @/);
+  assert.equal(errors.correoDominio, undefined);
+});
 test('cada checkbox y cada dato de retiro se conserva separado', () => {
   const form = new FormData(); form.append('conQuienVive', 'Solo madre'); form.append('conQuienVive', 'Otro');
   form.set('personasAutorizadas[1][nombre]', 'Retiro ficticio'); form.set('apoderadoSuplenteRutNumero', '123');

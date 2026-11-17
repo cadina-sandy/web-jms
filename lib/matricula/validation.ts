@@ -44,16 +44,24 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
     if (choice && !['rut', allowed].includes(choice)) errors[type] = 'Selecciona una identificación válida.';
     if (choice) [choice === 'rut' ? rut : alternate, choice === 'rut' ? digit : alternateDigit].forEach(requireField);
   }
-  for (const prefix of ['', 'apoderado']) {
-    const user = prefix ? 'apoderadoCorreoUsuario' : 'correoUsuario';
-    const domain = prefix ? 'apoderadoCorreoDominio' : 'correoDominio';
-    const other = `${domain}Otro` as keyof Answers;
-    if (answers[user] || answers[domain]) {
-      requireField(user); requireField(domain);
-      if (answers[domain] === 'otra') requireField(other);
-      const email = `${answers[user]}@${answers[domain] === 'otra' ? answers[other] : answers[domain]}`;
-      if (!/^[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+$/.test(email)) errors[answers[domain] === 'otra' ? other : user] = 'Escribe un correo válido.';
-    }
+  for (const [user, domain, other] of [
+    ['correoUsuario', 'correoDominio', 'correoDominioOtro'],
+    ['apoderadoCorreoUsuario', 'apoderadoCorreoDominio', 'apoderadoCorreoDominioOtro'],
+  ] as const) {
+    const username = answers[user];
+    const selectedDomain = answers[domain];
+    if (!username && !selectedDomain) continue;
+
+    requireField(user);
+    requireField(domain);
+    if (username?.includes('@')) errors[user] = 'Escribe solo la parte anterior al @.';
+    else if (username && /\s/.test(username)) errors[user] = 'Escribe el usuario del correo sin espacios.';
+
+    const domainField = selectedDomain === 'otra' ? other : domain;
+    const domainValue = answers[domainField];
+    if (selectedDomain === 'otra') requireField(other);
+    if (domainValue?.includes('@')) errors[domainField] = 'Escribe el dominio sin @ (por ejemplo, ejemplo.cl).';
+    else if (domainValue && !/^[^@\s.]+(?:\.[^@\s.]+)+$/.test(domainValue)) errors[domainField] = 'Escribe un dominio válido (por ejemplo, ejemplo.cl).';
   }
   for (const name of ['apoderadoCelular', 'emergenciaCelular', 'apoderadoSuplenteCelular']) {
     if (answers[name as keyof Answers] && !/^\d{9}$/.test(answers[name as keyof Answers]!)) errors[name] = 'Ingresa 9 dígitos, sin +56.';
