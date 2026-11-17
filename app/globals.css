@@ -478,64 +478,6 @@
   line-height: 1;
 }
 
-.indigenous-affiliation {
-  display: flex;
-  align-items: center;
-  align-self: end;
-  gap: 10px;
-  min-height: 42px;
-  max-width: 420px;
-  padding: 6px 12px;
-  border: 1px solid #a9afbb;
-  cursor: pointer;
-}
-
-.indigenous-affiliation input {
-  appearance: none;
-  display: grid;
-  align-items: center;
-  flex: 0 0 42px;
-  height: 24px;
-  margin: 0;
-  padding: 2px;
-  border: 1px solid #667085;
-  border-radius: 999px;
-  background: #667085;
-  cursor: inherit;
-}
-
-.indigenous-affiliation input::before {
-  content: "";
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.indigenous-affiliation input:checked {
-  justify-items: end;
-  border-color: var(--navy);
-  background: var(--navy);
-}
-
-.indigenous-affiliation input:focus-visible {
-  outline: 2px solid var(--navy);
-  outline-offset: 3px;
-}
-
-@media (forced-colors: active) {
-  .indigenous-affiliation input {
-    appearance: auto;
-    display: inline-block;
-    flex: 0 0 auto;
-    width: 24px;
-  }
-
-  .indigenous-affiliation input::before {
-    content: none;
-  }
-}
-
 @media (max-width: 680px) {
   .student-identification-fields {
     grid-template-columns: 1fr;
@@ -624,9 +566,22 @@
 #titulo-formulario { scroll-margin-top: 110px; }
 .reservation-form .save-enrollment { display: block; width: min(100%, 560px); min-height: 68px; margin: 2.5rem auto 1rem; padding: 18px 30px; border: 0; border-radius: 8px; background: #16733b; color: white; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
 .reservation-form .save-enrollment:hover { background: #10592d; }
+.reservation-form .save-enrollment.new-enrollment { background: #0b57a4; }
+.reservation-form .save-enrollment.new-enrollment:hover { background: #084482; }
 .reservation-form .save-enrollment:disabled { opacity: .65; cursor: default; }
 .enrollment-actor { width: min(100%, 560px); }
 
 .reservation-form .enrollment-success { box-sizing: border-box; width: min(100%, 560px); margin: 24px auto; padding: 24px 20px; border: 1px solid #8cc69e; border-radius: 8px; background: #e3f4e8; color: #10592d; text-align: center; }
 .enrollment-success strong { display: block; font-size: 1.3rem; }
 .enrollment-success small { display: block; margin-top: 8px; font-size: .75rem; overflow-wrap: anywhere; }
+
+.reservation-form .enrollment-receipt-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 100;
+  width: min(calc(100% - 32px), 560px);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 25%);
+}

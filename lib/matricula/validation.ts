@@ -3,7 +3,6 @@ import { enrollmentCourses, fields, householdOptions, type Answers } from './fie
 export function fromForm(data: FormData): Answers {
   const answers: Answers = {};
   for (const field of fields) answers[field] = String(data.get(field) ?? '').trim();
-  answers.pertenecePuebloOriginario = data.has('pertenecePuebloOriginario') ? 'si' : 'no';
   householdOptions.forEach((option, i) => { answers[`vive${i}` as keyof Answers] = data.getAll('conQuienVive').includes(option) ? 'si' : 'no'; });
   // Accept legacy bracket names while retaining the new flat columns.
   for (let i = 0; i < 10; i++) {
@@ -33,6 +32,9 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
   const required = ['fechaMatricula', 'curso', 'nombres', 'apellidoPaterno', 'apellidoMaterno', 'fechaNacimiento', 'genero', 'tipoIdentificacion', 'nacionalidad', 'direccion', 'comuna', 'numeroPersonasHogar', 'apoderadoNombres', 'apoderadoApellidos', 'apoderadoTipoIdentificacion', 'apoderadoNacionalidad', 'apoderadoParentesco', 'apoderadoCelular', 'apoderadoCorreoUsuario', 'apoderadoCorreoDominio', 'emergenciaContacto', 'emergenciaCelular', 'saludTipoPrevision', 'saludTieneDiagnostico', 'saludConsultorio', 'saludImpedimentoEducacionFisica', 'estudianteNuevo', 'cursoRepetido', 'matriculaRol', 'funcionarioMatricula', 'apoderadoFechaNacimiento', 'apoderadoNivelEducacion', 'apoderadoSituacionLaboral', 'apoderadoLugarTrabajo', 'apoderadoRegistroSocialHogares', 'apoderadoSuplenteAplica', 'saludMedicamentosContraindicadosOAlergias', 'dificultadAprendizaje', 'tratamientoEspecialista', 'programaApoyoFamiliar', 'autorizacionImagenDecision', 'retiroCantidad'];
   function requireField(name: string) { if (!answers[name as keyof Answers]) errors[name] = 'Completa este campo obligatorio.'; }
   required.forEach(requireField);
+  if (answers.pertenecePuebloOriginario !== 'si' && answers.pertenecePuebloOriginario !== 'no') {
+    errors.pertenecePuebloOriginario = 'Selecciona Sí o No.';
+  }
   if (!householdOptions.some((_, i) => answers[`vive${i}` as keyof Answers] === 'si')) errors.conQuienVive = 'Selecciona al menos una opción.';
   for (const [type, rut, digit, alternate, alternateDigit, allowed] of [
     ['tipoIdentificacion', 'rutNumero', 'rutDigito', 'ipe', 'ipeDigito', 'ipe'],

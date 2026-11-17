@@ -674,6 +674,7 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
   const [open, setOpen] = useState(initiallyOpen);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showReceiptPopup, setShowReceiptPopup] = useState(false);
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [receiptEmail, setReceiptEmail] = useState<'sent' | 'failed' | 'unavailable' | undefined>();
   const [message, setMessage] = useState('');
@@ -684,6 +685,12 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
   useEffect(() => () => {
     if (validationFrame.current !== null) cancelAnimationFrame(validationFrame.current);
   }, []);
+  useEffect(() => {
+    if (!showReceiptPopup) return;
+    const dismiss = window.setTimeout(() => setShowReceiptPopup(false), 4000);
+    return () => window.clearTimeout(dismiss);
+  }, [showReceiptPopup]);
+
   function displayErrors(errors: Record<string, string>, focus = true) {
     shownErrors.current = errors;
     const form = formRef.current;
@@ -737,7 +744,9 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
       if (!response.ok) { if (result.errors) displayErrors(result.errors); setMessage(result.error || 'Revisa los campos indicados.'); return; }
       setReceiptId(result.id ?? submissionId.current);
       setReceiptEmail(result.receiptEmail);
-      setSaved(true); setMessage('Matrícula guardada.');
+      setSaved(true);
+      setShowReceiptPopup(true);
+      setMessage('Matrícula guardada.');
     } catch { setMessage('No se pudo conectar. Tu ficha sigue aquí; intenta nuevamente.'); }
     finally { setBusy(false); }
   }
@@ -855,9 +864,13 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
               </div>
               <IdentificationFields>
                 <NationalityField name="nacionalidad" />
-                <label className="indigenous-affiliation">
-                  <input type="checkbox" role="switch" name="pertenecePuebloOriginario" value="si" />
+                <label>
                   ¿Pertenece a algún pueblo originario?
+                  <select name="pertenecePuebloOriginario" defaultValue="">
+                    <option value="" disabled>Selecciona una opción</option>
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                  </select>
                 </label>
               </IdentificationFields>
               <div className="student-address-fields">
@@ -1028,7 +1041,7 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
               />
               </fieldset>
               <button className="save-enrollment" type="submit" disabled={busy || saved || !!process.env.NEXT_PUBLIC_MATRICULA_URL}>{busy ? 'Guardando…' : saved ? 'Matrícula guardada' : 'Guardar Matrícula'}</button>
-              <div role="status" aria-live="polite" className={saved ? 'enrollment-success' : undefined}>
+              <div role="status" aria-live="polite" className={saved ? `enrollment-success${showReceiptPopup ? ' enrollment-receipt-popup' : ''}` : undefined}>
                 {saved ? (
                   <>
                     <strong>{message}</strong>
@@ -1038,7 +1051,7 @@ function EnrollmentForm({ initiallyOpen, onNewEnrollment }: { initiallyOpen: boo
                   </>
                 ) : message}
               </div>
-              {saved && <button className="save-enrollment" type="button" onClick={onNewEnrollment}>Hacer Nueva Matrícula</button>}
+              {saved && <button className="save-enrollment new-enrollment" type="button" onClick={onNewEnrollment}>Hacer Nueva Matrícula</button>}
             </form>
           </section>
         </div>
