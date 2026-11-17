@@ -246,6 +246,30 @@
   max-width: none;
 }
 
+@media (min-width: 681px) {
+  .student-address-fields {
+    grid-template-rows: auto auto auto;
+  }
+
+  .student-address-fields > div,
+  .student-address-fields > label,
+  .student-address-fields > div > label {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    row-gap: 0;
+    min-width: 0;
+  }
+
+  .student-address-fields > div {
+    grid-row: span 3;
+  }
+
+  .student-address-feedback {
+    grid-row: 3;
+  }
+}
+
 .student-address-feedback {
   margin-top: 6px;
   font-size: 0.875rem;
