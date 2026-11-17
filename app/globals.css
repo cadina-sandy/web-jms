@@ -235,7 +235,7 @@
 
 .student-address-fields {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr) repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 4fr) repeat(2, minmax(0, 1fr)) minmax(0, 3fr);
   align-items: start;
   gap: 16px;
   margin-top: 20px;

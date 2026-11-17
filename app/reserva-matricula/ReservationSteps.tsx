@@ -957,6 +957,14 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                   )}
                 </div>
                 <label>
+                  Block o Torre
+                  <input name="blockOTorre" type="text" />
+                </label>
+                <label>
+                  N° de departamento
+                  <input name="departamento" type="text" />
+                </label>
+                <label>
                   Comuna
                   <select name="comuna" value={commune} onChange={(event) => setCommune(event.target.value)} autoComplete="address-level2"
                     aria-describedby={checksAddresses ? 'direccion-ayuda direccion-resultado' : undefined}>
@@ -965,14 +973,6 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                       <option key={comuna} value={comuna}>{comuna}</option>
                     ))}
                   </select>
-                </label>
-                <label>
-                  Block o Torre
-                  <input name="blockOTorre" type="text" />
-                </label>
-                <label>
-                  N° de departamento
-                  <input name="departamento" type="text" />
                 </label>
               </div>
               <div className="student-household-fields">
