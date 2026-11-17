@@ -1,7 +1,7 @@
 import { authorizeStaff } from '@/lib/matricula/access';
 import { databaseSchema, tableName } from '@/lib/matricula/target';
 import { enrollmentCourses, fields } from '@/lib/matricula/fields';
-import { getSql, quote } from '@/lib/matricula/db';
+import { getSql, readEnrollmentColumn } from '@/lib/matricula/db';
 import { labels } from '@/lib/matricula/labels';
 import { csv } from '@/lib/matricula/csv';
 export const runtime = 'nodejs';
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const where = course ? ' WHERE "curso" = $1' : '';
     const rows = await getSql().query(
-      `SELECT ${columns.map(quote).join(',')} FROM ${tableName(databaseSchema())}${where} ORDER BY created_at, id LIMIT 10001`,
+      `SELECT ${columns.map(readEnrollmentColumn).join(',')} FROM ${tableName(databaseSchema())} AS enrollment${where} ORDER BY created_at, id LIMIT 10001`,
       course ? [course] : [],
     );
     if (rows.length > 10000) return Response.json({ error: 'Más de 10000 fichas. Solicita una exportación por lotes a administración.' }, { status: 413 });

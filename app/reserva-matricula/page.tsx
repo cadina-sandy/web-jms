@@ -25,7 +25,7 @@ export default function ReservationPage() {
           </div>
         </div>
       </section>
-      <ReservationSteps />
+      <ReservationSteps checksAddresses={Boolean(process.env.GEOAPIFY_API_KEY?.trim())} />
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import { authorizeStaff } from '@/lib/matricula/access';
-import { getSql, quote } from '@/lib/matricula/db';
+import { getSql, quote, readEnrollmentColumn } from '@/lib/matricula/db';
 import { enrollmentCourses, fields } from '@/lib/matricula/fields';
 import { databaseSchema, tableName } from '@/lib/matricula/target';
 import { pageSize } from '@/lib/matricula/view';
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const sql = getSql();
     const table = tableName(databaseSchema());
     if (typeof id === 'string') {
-      const [record] = await sql.query(`SELECT ${['id', ...fields].map(quote).join(', ')} FROM ${table} WHERE id = $1`, [id]);
+      const [record] = await sql.query(`SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = $1`, [id]);
       if (!record) return Response.json({ error: 'No se encontró esa ficha.' }, { status: 404, headers });
       return Response.json({ record }, { headers });
     }
