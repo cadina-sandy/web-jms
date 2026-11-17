@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   if (denied) return denied;
   let body;
   try { body = await request.json() as { columns?: unknown; course?: unknown }; } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400 }); }
-  const allowed = ['id', 'created_at', ...fields];
+  const allowed = [...fields, 'id', 'created_at'];
   const columns: unknown = body?.columns === undefined ? allowed : body.columns;
   const course = body?.course;
   if (course != null && (typeof course !== 'string' || !enrollmentCourses.includes(course))) {
