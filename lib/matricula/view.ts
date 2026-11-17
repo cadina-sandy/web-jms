@@ -53,7 +53,7 @@ export function enrollmentSections(record: EnrollmentRecord) {
   return sectionStarts.map(([first, title], index) => {
     const next = sectionStarts[index + 1]?.[0];
     const sectionFields = fields.slice(fields.indexOf(first), next ? fields.indexOf(next) : fields.length);
-    const entries = sectionFields.flatMap(field => {
+    const entries = sectionFields.flatMap<{ key: Field; label: string; value: string }>(field => {
       if (field === 'vive0') {
         const value = householdOptions.filter((_, i) => record[`vive${i}` as Field] === 'si').join(', ');
         return value ? [{ key: field, label: 'Vive con', value }] : [];
