@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Lora } from 'next/font/google';
 import './globals.css';
+import WebAnalytics from './WebAnalytics';
 
 const inter = Inter({ variable: '--font-sans', subsets: ['latin'] });
 const lora = Lora({ variable: '--font-serif', subsets: ['latin'], style: ['italic'] });
@@ -20,5 +21,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es"><body className={`${inter.variable} ${lora.variable}`}>{children}</body></html>;
+  return (
+    <html lang="es">
+      <body className={`${inter.variable} ${lora.variable}`}>
+        {children}
+        {process.env.VERCEL === '1' && <WebAnalytics />}
+      </body>
+    </html>
+  );
 }
