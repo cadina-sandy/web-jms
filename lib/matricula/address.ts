@@ -31,9 +31,12 @@ export async function checkAddress(address: string, commune: string, apiKey: str
   });
   try {
     const response = await fetch(`https://api.geoapify.com/v1/geocode/search?${query}`, {
-      cache: 'no-store', signal: AbortSignal.timeout(2500),
+      cache: 'no-store', signal: AbortSignal.timeout(4000),
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn('Geoapify rechazó la consulta de matrícula.', response.status);
+      return null;
+    }
     const { results } = await response.json() as { results?: GeocodingResult[] };
     return Array.isArray(results) && results.some(result =>
       result?.rank?.match_type === 'full_match' &&
@@ -43,7 +46,9 @@ export async function checkAddress(address: string, commune: string, apiKey: str
       [result.city, result.municipality, result.county, result.district, result.suburb]
         .some(value => normalize(value) === normalize(commune))
     );
-  } catch {
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    console.warn(timedOut ? 'Geoapify agotó el tiempo de espera.' : 'No se pudo conectar con Geoapify.');
     return null;
   }
 }
