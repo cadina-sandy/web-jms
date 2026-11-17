@@ -698,9 +698,15 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
   const [commune, setCommune] = useState('');
   const [addressCheck, setAddressCheck] = useState<{ address: string; commune: string; message: string }>();
   const streetAddress = address.trim();
-  const canCheckAddress = checksAddresses && Boolean(commune) && /\s(?:(?:n[°º.]|#)\s*)?\d{1,7}[a-z]?$/i.test(streetAddress);
-  const liveAddressMessage = canCheckAddress && addressCheck?.address === streetAddress && addressCheck.commune === commune
-    ? addressCheck.message : '';
+  const hasStreetAndNumber = /\s(?:(?:n[°º.]|#)\s*)?\d{1,7}[a-z]?$/i.test(streetAddress);
+  const canCheckAddress = checksAddresses && hasStreetAndNumber && Boolean(commune);
+  const addressFeedback = !hasStreetAndNumber
+    ? 'Escribe la calle y el número para comprobar la dirección.'
+    : !commune
+      ? 'Selecciona la comuna para comprobar esta dirección.'
+      : addressCheck?.address === streetAddress && addressCheck.commune === commune
+        ? addressCheck.message
+        : 'Comprobando dirección…';
 
   useEffect(() => {
     if (!canCheckAddress || saved) return;
@@ -709,7 +715,6 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
       if (!controller.signal.aborted) setAddressCheck({ address: streetAddress, commune, message });
     };
     const timeout = window.setTimeout(async () => {
-      show('Comprobando dirección…');
       try {
         const response = await fetch('/api/matriculas/comprobar-direccion/', {
           method: 'POST',
@@ -934,20 +939,23 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                 </label>
               </IdentificationFields>
               <div className="student-address-fields">
-                <label>
-                  Dirección (Calle y Número)
-                  <input name="direccion" type="text" autoComplete="address-line1"
-                    value={address} onChange={(event) => setAddress(event.target.value)}
-                    aria-describedby={checksAddresses ? 'direccion-ayuda direccion-resultado' : undefined} />
-                </label>
-                <label>
-                  Block o Torre
-                  <input name="blockOTorre" type="text" />
-                </label>
-                <label>
-                  N° de departamento
-                  <input name="departamento" type="text" />
-                </label>
+                <div>
+                  <label>
+                    Dirección (Calle y Número)
+                    <input name="direccion" type="text" autoComplete="address-line1"
+                      value={address} onChange={(event) => setAddress(event.target.value)}
+                      aria-describedby={checksAddresses ? 'direccion-resultado direccion-ayuda' : undefined} />
+                  </label>
+                  {checksAddresses && (
+                    <div className="student-address-feedback">
+                      <div id="direccion-resultado" role="status">{addressFeedback}</div>
+                      <small id="direccion-ayuda">
+                        Comprobación con <a href="https://www.geoapify.com/">Geoapify</a>.
+                        Datos de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
+                      </small>
+                    </div>
+                  )}
+                </div>
                 <label>
                   Comuna
                   <select name="comuna" value={commune} onChange={(event) => setCommune(event.target.value)} autoComplete="address-level2"
@@ -958,16 +966,15 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                     ))}
                   </select>
                 </label>
+                <label>
+                  Block o Torre
+                  <input name="blockOTorre" type="text" />
+                </label>
+                <label>
+                  N° de departamento
+                  <input name="departamento" type="text" />
+                </label>
               </div>
-              {checksAddresses && (
-                <div>
-                  <small id="direccion-ayuda">
-                    Comprobamos calle, número y comuna con <a href="https://www.geoapify.com/">Geoapify</a>.
-                    Datos de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
-                  </small>
-                  <div id="direccion-resultado" role="status">{liveAddressMessage}</div>
-                </div>
-              )}
               <div className="student-household-fields">
                 <StudentHouseholdField />
                 <label>

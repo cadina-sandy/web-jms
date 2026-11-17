@@ -235,8 +235,8 @@
 
 .student-address-fields {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) repeat(2, minmax(0, 1fr)) minmax(0, 3fr);
-  align-items: end;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 3fr) repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 16px;
   margin-top: 20px;
 }
@@ -244,6 +244,17 @@
 .student-address-fields input[type="text"],
 .student-address-fields select {
   max-width: none;
+}
+
+.student-address-feedback {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.student-address-feedback small {
+  display: block;
+  margin-top: 3px;
 }
 
 .student-household-fields {
