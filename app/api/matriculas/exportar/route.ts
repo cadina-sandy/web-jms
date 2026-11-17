@@ -25,6 +25,12 @@ export async function POST(request: Request) {
     );
     if (rows.length > 10000) return Response.json({ error: 'Más de 10000 fichas. Solicita una exportación por lotes a administración.' }, { status: 413 });
     const courseSuffix = course ? '-' + course.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
-    return new Response(csv(columns, rows, labels), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="matriculas-2027${courseSuffix}.csv"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
+    const exportedColumns = body?.columns === undefined
+      ? columns.filter(column => rows.some(row => String(row[column] ?? '').trim() !== ''))
+      : columns;
+    if (!exportedColumns.length) {
+      return Response.json({ error: 'No hay matrículas para la selección.' }, { status: 404 });
+    }
+    return new Response(csv(exportedColumns, rows, labels), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="matriculas-2027${courseSuffix}.csv"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
   } catch { return Response.json({ error: 'No se pudo exportar. Verifica que exista una matrícula guardada.' }, { status: 503 }); }
 }
