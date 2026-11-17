@@ -19,7 +19,7 @@ function normalizeStreet(value: string | undefined) {
   return normalize(value).replace(/^(?:av|avda) /, 'avenida ').replace(/^pje /, 'pasaje ');
 }
 
-export async function isAddressFound(address: string, commune: string, apiKey: string) {
+export async function checkAddress(address: string, commune: string, apiKey: string) {
   // Block, tower and apartment are separate form fields and never enter this request.
   if (address.length > 160 || commune.length > 80 || !commune.trim()) return false;
   const [, street, houseNumber] = /^(.+?)\s+(?:(?:n[°º.]|#)\s*)?(\d{1,7}[a-z]?)$/i.exec(address.trim()) ?? [];
@@ -33,7 +33,7 @@ export async function isAddressFound(address: string, commune: string, apiKey: s
     const response = await fetch(`https://api.geoapify.com/v1/geocode/search?${query}`, {
       cache: 'no-store', signal: AbortSignal.timeout(2500),
     });
-    if (!response.ok) return false;
+    if (!response.ok) return null;
     const { results } = await response.json() as { results?: GeocodingResult[] };
     return Array.isArray(results) && results.some(result =>
       result?.rank?.match_type === 'full_match' &&
@@ -44,6 +44,10 @@ export async function isAddressFound(address: string, commune: string, apiKey: s
         .some(value => normalize(value) === normalize(commune))
     );
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function isAddressFound(address: string, commune: string, apiKey: string) {
+  return (await checkAddress(address, commune, apiKey)) === true;
 }
