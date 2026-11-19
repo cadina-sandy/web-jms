@@ -41,9 +41,9 @@ test('fechas imposibles y teléfonos incompletos se rechazan', () => {
 });
 
 test('todos los campos base requieren respuesta, sin forzar consentimiento de imagen', () => {
-  const result = validate({...fixture, apellidoMaterno:'', apoderadoFechaNacimiento:'', programaApoyoFamiliar:'', autorizacionImagenDecision:'no'});
+  const result = validate({...fixture, apellidoMaterno:'', apoderadoFechaNacimiento:'', programaApoyoFamiliar:'', autorizacionImagenDecision:'no', autorizacionImagenFirma:''});
   assert.ok(result.errors.apellidoMaterno); assert.ok(result.errors.apoderadoFechaNacimiento); assert.ok(result.errors.programaApoyoFamiliar);
-  assert.equal(result.errors.autorizacionImagenFirma, undefined);
+  assert.ok(result.errors.autorizacionImagenFirma);
 });
 test('suplente IPA se valida y sus datos de retiro se resuelven en servidor', () => {
   const {answers, errors} = validate(fixture);
@@ -70,4 +70,18 @@ test('pueblo originario exige una respuesta explícita y conserva Sí o No', () 
   for (const answer of ['', 'otro']) {
     assert.ok(validate({ ...fixture, pertenecePuebloOriginario: answer }).errors.pertenecePuebloOriginario);
   }
+});
+
+test('rechazo de imagen conserva declaración, firma y fecha y valida el suplente', () => {
+  const declaration = {
+    ...fixture, autorizacionImagenDecision: 'no',
+    autorizacionImagenApoderado: 'apoderado', autorizacionImagenFirma: 'Apoderado de prueba',
+    autorizacionImagenFecha: '18/11/2026',
+  };
+  const { answers, errors } = validate(declaration);
+  assert.deepEqual(errors, {});
+  assert.equal(answers.autorizacionImagenDecision, 'no');
+  assert.equal(answers.autorizacionImagenFirma, declaration.autorizacionImagenFirma);
+  assert.equal(answers.autorizacionImagenFecha, declaration.autorizacionImagenFecha);
+  assert.ok(validate({ ...declaration, apoderadoSuplenteAplica: 'no-aplica', autorizacionImagenApoderado: 'apoderado-suplente' }).errors.autorizacionImagenApoderado);
 });

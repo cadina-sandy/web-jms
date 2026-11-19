@@ -77,7 +77,7 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
     ['saludConsultorio', 'otro', 'saludOtroConsultorio'], ['cursoRepetido', 'si', 'cantidadCursosRepetidos'], ['estudianteNuevo', 'si', 'colegioProcedencia'],
   ]) { if (answers[name as keyof Answers] === choice) requireField(detail); else answers[detail as keyof Answers] = ''; }
   if (answers.emergenciaContacto === 'apoderado-suplente' && answers.apoderadoSuplenteAplica !== 'si') errors.emergenciaContacto = 'No hay suplente en esta ficha.';
-  if (answers.autorizacionImagenDecision === 'si' && answers.autorizacionImagenApoderado === 'apoderado-suplente' && answers.apoderadoSuplenteAplica !== 'si') errors.autorizacionImagenApoderado = 'No hay suplente en esta ficha.';
+  if (['si', 'no'].includes(answers.autorizacionImagenDecision || '') && answers.autorizacionImagenApoderado === 'apoderado-suplente' && answers.apoderadoSuplenteAplica !== 'si') errors.autorizacionImagenApoderado = 'No hay suplente en esta ficha.';
   if (answers.matriculaRol === 'funcionario' && answers.funcionarioMatricula && !['Paula Santander', 'Sandy Cadín', 'Jeannette Montanares', 'Jaime Villalobos', 'otro'].includes(answers.funcionarioMatricula)) errors.funcionarioMatricula = 'Selecciona un funcionario o «Otro».';
   if (!['funcionario', 'apoderado'].includes(answers.matriculaRol || '')) errors.matriculaRol = 'Selecciona quién realiza la matrícula.';
   if (answers.matriculaRol === 'apoderado' && answers.funcionarioMatricula !== 'otro') {
@@ -96,7 +96,7 @@ export function validate(input: unknown): { answers: Answers; errors: Record<str
     for (const key of fields) if (key.startsWith('apoderadoSuplente') && key !== 'apoderadoSuplenteAplica') answers[key] = '';
   }
   if (!['si', 'no'].includes(answers.autorizacionImagenDecision || '')) errors.autorizacionImagenDecision = 'Indica si autoriza o no el uso de imagen.';
-  if (answers.autorizacionImagenDecision === 'si') ['autorizacionImagenApoderado', 'autorizacionImagenFirma', 'autorizacionImagenFecha'].forEach(requireField);
+  if (['si', 'no'].includes(answers.autorizacionImagenDecision || '')) ['autorizacionImagenApoderado', 'autorizacionImagenFirma', 'autorizacionImagenFecha'].forEach(requireField);
   else ['autorizacionImagenApoderado', 'autorizacionImagenFirma', 'autorizacionImagenFecha'].forEach(key => { answers[key as keyof Answers] = ''; });
   const count = Number(answers.retiroCantidad);
   if (!Number.isInteger(count) || count < 1 || count > 10) errors.retiroCantidad = 'Debe indicar entre una y diez personas.';
