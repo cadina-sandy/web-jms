@@ -123,6 +123,7 @@ function DocumentNumberFields({
   maxDigits,
   enabled,
   visible,
+  selectionHint,
 }: {
   label: string;
   numberName: string;
@@ -130,6 +131,7 @@ function DocumentNumberFields({
   maxDigits: number;
   enabled: boolean;
   visible: boolean;
+  selectionHint: string;
 }) {
   const [number, setNumber] = useState('');
   const [digit, setDigit] = useState('');
@@ -137,10 +139,11 @@ function DocumentNumberFields({
   return (
     <div hidden={!visible}>
       <div className="student-rut-fields">
-        <label>
+        <label className={!enabled ? 'document-field-disabled' : undefined} tabIndex={!enabled ? 0 : undefined}>
           Número de {label}
           <input
             name={numberName}
+            aria-describedby={!enabled ? `${numberName}-hint` : undefined}
             type="text"
             inputMode="numeric"
             disabled={!enabled}
@@ -150,18 +153,21 @@ function DocumentNumberFields({
               setNumber(digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
             }}
           />
+          {!enabled && <span className="document-selection-hint" id={`${numberName}-hint`} role="tooltip">{selectionHint}</span>}
         </label>
         <span aria-hidden="true">-</span>
-        <label>
+        <label className={!enabled ? 'document-field-disabled' : undefined} tabIndex={!enabled ? 0 : undefined}>
           Dígito verificador
           <input
             name={digitName}
+            aria-describedby={!enabled ? `${digitName}-hint` : undefined}
             type="text"
             maxLength={1}
             disabled={!enabled}
             value={digit}
             onChange={(event) => setDigit(event.target.value.toUpperCase().replace(/[^0-9K]/g, ''))}
           />
+          {!enabled && <span className="document-selection-hint" id={`${digitName}-hint`} role="tooltip">{selectionHint}</span>}
         </label>
       </div>
     </div>
@@ -184,6 +190,7 @@ function IdentificationFields({ guardian = false, prefix = guardian ? 'apoderado
       <div className="student-identification-fields">
         <div className="identification-number-fields">
           <DocumentNumberFields
+            selectionHint={`Debe seleccionar Rut o ${alternateLabel}`}
             label="RUT"
             numberName={field("RutNumero")}
             digitName={field("RutDigito")}
@@ -192,6 +199,7 @@ function IdentificationFields({ guardian = false, prefix = guardian ? 'apoderado
             visible={identification === null || identification === 'rut'}
           />
           <DocumentNumberFields
+            selectionHint={`Debe seleccionar Rut o ${alternateLabel}`}
             label={alternateLabel}
             numberName={field(guardian ? "Ipa" : "Ipe")}
             digitName={field(guardian ? "IpaDigito" : "IpeDigito")}
@@ -654,25 +662,25 @@ function PhotoConsentFields({
           <option value="no">No autorizo</option>
         </select>
       </label>
-      {consent === 'si' && <>
+      {(consent === 'si' || consent === 'no') && <>
       <p>
         Yo{' '}
-        <select name="autorizacionImagenApoderado" aria-label="Apoderado que autoriza" defaultValue="">
+        <select name="autorizacionImagenApoderado" aria-label="Apoderado que declara" defaultValue="">
           <option value="" disabled>Selecciona un apoderado</option>
           <option value="apoderado" disabled={!guardianName}>{guardianName || 'Apoderado'}</option>
           <option value="apoderado-suplente" disabled={!substituteName}>{substituteName || 'Apoderado suplente'}</option>
         </select>
-        , apoderado de <strong>{studentName || 'nombre del estudiante'}</strong>, autorizo al
+        , apoderado de <strong>{studentName || 'nombre del estudiante'}</strong>, {consent === 'si' ? 'autorizo' : <strong>NO autorizo</strong>} al
         establecimiento a utilizar fotografías y/o videos del estudiante con fines educativos
         y de difusión institucional, resguardando su privacidad y bienestar.
       </p>
       <div className="photo-consent-signature">
         <label>
-          Firma
+          <strong>Firma</strong>
           <input className="signature-name" name="autorizacionImagenFirma" type="text" placeholder="Escribe tu nombre completo" />
         </label>
         <label>
-          Fecha
+          <strong>Fecha</strong>
           <input name="autorizacionImagenFecha" type="text" value={date.split('-').reverse().join('/')} readOnly />
         </label>
       </div>
@@ -838,15 +846,11 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
   return (
       <section className="section reservation-steps" id="pasos-matricula" aria-labelledby="titulo-pasos-matricula">
         <div className="shell">
-          <h2 id="titulo-pasos-matricula">Pasos a seguir<br /> <em>para reservar tu matrícula para alumnos antiguos</em></h2>
+          <h2 id="titulo-pasos-matricula">Pasos</h2>
           <ol className="reservation-step-list">
             <li>
               <h3>Paso 1</h3>
-              <p>Postula al estudiante al establecimiento Julio Montt a través del <a href="https://www.sistemadeadmisionescolar.cl/" target="_blank" rel="noreferrer">Sistema de Admisión Escolar (SAE)</a>.</p>
-            </li>
-            <li>
-              <h3>Paso 2</h3>
-              <p>Completa el formulario de Matrícula 2027 <button
+              <p>Luego de tu <strong>Postulación a la Escuela Julio Montt</strong> y posterior aceptación completar la <button
                 type="button"
                 className="reservation-form-trigger"
                 aria-expanded={open}
@@ -863,18 +867,18 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                     formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-              >Aquí</button></p>
+              ><strong>MATRÍCULA 2027 AQUÍ</strong></button></p>
             </li>
             <li>
-              <h3>Paso 3</h3>
-              <p>Acércate al establecimiento a firmar el consentimiento desde el 2 de diciembre.</p>
+              <h3>Paso 2</h3>
+              <p>Después de completar el formulario <strong>Acércate al establecimiento</strong> a firmar el consentimiento desde el <strong>2 de diciembre.</strong></p>
             </li>
           </ol>
 
           <section className="reservation-form" id="formulario-matricula" aria-labelledby="titulo-formulario" hidden={!open}>
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
             {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
-            <p>Completa los datos del estudiante, apoderado, emergencia, salud y antecedentes escolares. Todos los campos requieren respuesta, salvo el correo del estudiante y los detalles que no correspondan. En estos casos selecciona «No aplica» o «Ninguno», o indícalo en el campo de texto. Block, torre y departamento solo se completan si corresponden.</p>
+            <p>Todos los campos son obligatorios y la información ingresada es de uso confidencial del colegio. Si no cuenta con algún dato, complete el campo con «No aplica».</p>
             <form ref={formRef} noValidate onSubmit={submit} onChange={recheckShownErrors}>
               <fieldset disabled={busy || saved} className="enrollment-inputs">
               <div className="enrollment-header-fields">
