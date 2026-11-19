@@ -9,7 +9,7 @@ export default function ExportMatriculas() {
   const [token, setToken] = useState('');
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | null>(null);
+  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | null>(null);
   const [listing, setListing] = useState<{ records: EnrollmentSummary[]; hasMore: boolean; offset: number } | null>(null);
   const [record, setRecord] = useState<EnrollmentRecord | null>(null);
   const recordHeading = useRef<HTMLHeadingElement>(null);
@@ -24,9 +24,9 @@ export default function ExportMatriculas() {
     setMessage('');
   }
 
-  async function request(action: 'consultar' | 'exportar', body: object) {
+  async function request(action: 'consultar' | 'exportar' | 'eliminar', body: object) {
     const response = await fetch(`/api/matriculas/${action}/`, {
-      method: 'POST',
+      method: action === 'eliminar' ? 'DELETE' : 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
       cache: 'no-store',
@@ -64,6 +64,36 @@ export default function ExportMatriculas() {
       setRecord(result.record);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo consultar la ficha.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function deleteRecord(row: EnrollmentSummary) {
+    if (busy || !token || !listing) return;
+    const name = enrollmentName(row);
+    const confirmed = window.confirm(
+      `¿Eliminar definitivamente la ficha de ${name}, curso ${row.curso}?\n\nComprobante: ${row.id}\n\nDejará de aparecer en las fichas y en el CSV. Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+    setBusy('delete');
+    setMessage('');
+    try {
+      await request('eliminar', { id: row.id });
+      // Update immediately even if refreshing the current page fails.
+      setListing(current => current ? { ...current, records: current.records.filter(item => item.id !== row.id) } : null);
+      setRecord(null);
+      setMessage(`Ficha de ${name} eliminada.`);
+      const offset = listing.records.length === 1 && listing.offset > 0 ? listing.offset - pageSize : listing.offset;
+      try {
+        const response = await request('consultar', { course: course || null, search, offset });
+        const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
+        setListing({ ...result, offset });
+      } catch {
+        setMessage(`Ficha de ${name} eliminada. Pulsa «Ver fichas» para actualizar el listado.`);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo eliminar la ficha. Intenta nuevamente.');
     } finally {
       setBusy(null);
     }
@@ -135,7 +165,16 @@ export default function ExportMatriculas() {
               {listing.records.map(row => (
                 <li key={row.id}>
                   <div><strong>{enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></div>
-                  <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
+                  <div className="enrollment-row-actions">
+                    <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
+                    <button className="enrollment-delete" type="button" disabled={!!busy}
+                      aria-label={`Eliminar ficha de ${enrollmentName(row)}`} title="Eliminar ficha"
+                      onClick={() => deleteRecord(row)}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" />
+                      </svg>
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

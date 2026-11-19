@@ -753,3 +753,24 @@
 .enrollment-record-section dl { margin: .7rem 0 0; }
 .enrollment-record dt { font-weight: 700; color: #40556e; }
 .enrollment-record dd { margin: .25rem 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+
+.enrollment-row-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.enrollment-admin button.enrollment-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  color: #a71919;
+  border-color: #ce9b9b;
+}
+
+.enrollment-admin button.enrollment-delete:not(:disabled):hover {
+  background: #fff0f0;
+  border-color: #a71919;
+}
