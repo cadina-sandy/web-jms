@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type Ref } from 'react';
 import { enrollmentCourses } from '@/lib/matricula/fields';
 import { enrollmentDate, enrollmentName, enrollmentSections, pageSize, type EnrollmentRecord, type EnrollmentSummary } from '@/lib/matricula/view';
 
@@ -9,16 +9,43 @@ export default function ExportMatriculas() {
   const [token, setToken] = useState('');
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | null>(null);
+  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | 'select' | 'print' | null>(null);
   const [listing, setListing] = useState<{ records: EnrollmentSummary[]; hasMore: boolean; offset: number } | null>(null);
   const [record, setRecord] = useState<EnrollmentRecord | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [allMatchingSelected, setAllMatchingSelected] = useState(false);
+  const [printRecords, setPrintRecords] = useState<EnrollmentRecord[]>([]);
   const recordHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     recordHeading.current?.focus();
   }, [record]);
 
-  function clearResults() {
+  useEffect(() => {
+    if (!printRecords.length) return;
+    const finish = () => {
+      setPrintRecords([]);
+      setBusy(null);
+    };
+    window.addEventListener('afterprint', finish, { once: true });
+    const frame = window.requestAnimationFrame(() => {
+      try { window.print(); } catch {
+        finish();
+        setMessage('No se pudo abrir la impresión. Intenta nuevamente.');
+      }
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('afterprint', finish);
+    };
+  }, [printRecords]);
+
+  function clearResults(resetSelection = true) {
+    if (resetSelection) {
+      setSelectedIds([]);
+      setAllMatchingSelected(false);
+      setPrintRecords([]);
+    }
     setListing(null);
     setRecord(null);
     setMessage('');
@@ -42,7 +69,7 @@ export default function ExportMatriculas() {
   async function loadList(offset = 0) {
     if (busy || !token) return;
     setBusy('list');
-    clearResults();
+    clearResults(false);
     try {
       const response = await request('consultar', { course: course || null, search, offset });
       const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
@@ -80,6 +107,8 @@ export default function ExportMatriculas() {
     setMessage('');
     try {
       await request('eliminar', { id: row.id });
+      setSelectedIds(current => current.filter(id => id !== row.id));
+      setAllMatchingSelected(false);
       // Update immediately even if refreshing the current page fails.
       setListing(current => current ? { ...current, records: current.records.filter(item => item.id !== row.id) } : null);
       setRecord(null);
@@ -96,6 +125,60 @@ export default function ExportMatriculas() {
       setMessage(error instanceof Error ? error.message : 'No se pudo eliminar la ficha. Intenta nuevamente.');
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function selectAll(checked: boolean) {
+    if (busy || !token) return;
+    if (!checked) {
+      setSelectedIds([]);
+      setAllMatchingSelected(false);
+      return;
+    }
+    setBusy('select');
+    setMessage('');
+    try {
+      const ids = new Set<string>();
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const response = await request('consultar', { course: course || null, search, offset });
+        const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
+        result.records.forEach(row => ids.add(row.id));
+        hasMore = result.hasMore;
+        offset += pageSize;
+      }
+      setSelectedIds([...ids]);
+      setAllMatchingSelected(true);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudieron seleccionar las fichas.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function selectRecord(id: string, checked: boolean) {
+    setSelectedIds(current => checked ? [...current, id] : current.filter(value => value !== id));
+    setAllMatchingSelected(false);
+  }
+
+  async function printSelected() {
+    if (busy || !token || !selectedIds.length) return;
+    setBusy('print');
+    setMessage('Preparando fichas para imprimir…');
+    try {
+      const records: EnrollmentRecord[] = [];
+      for (let offset = 0; offset < selectedIds.length; offset += pageSize) {
+        const response = await request('consultar', { ids: selectedIds.slice(offset, offset + pageSize) });
+        const result = await response.json() as { records: EnrollmentRecord[] };
+        records.push(...result.records);
+      }
+      setPrintRecords(records);
+      setMessage('');
+    } catch (error) {
+      setPrintRecords([]);
+      setBusy(null);
+      setMessage(error instanceof Error ? error.message : 'No se pudieron preparar las fichas.');
     }
   }
 
@@ -160,11 +243,30 @@ export default function ExportMatriculas() {
       {listing && !record && (
         <section className="enrollment-admin-results" aria-labelledby="saved-enrollments-title">
           <h2 id="saved-enrollments-title">Fichas guardadas</h2>
+          {listing.records.length > 0 && (
+            <div className="enrollment-selection">
+              <label>
+                <input type="checkbox" checked={allMatchingSelected} disabled={!!busy}
+                  onChange={event => { void selectAll(event.target.checked); }} />
+                Seleccionar todos
+              </label>
+              <span>{selectedIds.length} {selectedIds.length === 1 ? 'ficha seleccionada' : 'fichas seleccionadas'}</span>
+              <button type="button" disabled={!selectedIds.length || !!busy} onClick={printSelected}>
+                {busy === 'print' ? 'Preparando impresión…' : 'Imprimir seleccionadas'}
+              </button>
+              <small>«Seleccionar todos» incluye todas las páginas de esta búsqueda.</small>
+            </div>
+          )}
           {listing.records.length ? (
             <ul className="enrollment-admin-list">
               {listing.records.map(row => (
                 <li key={row.id}>
-                  <div><strong>{enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></div>
+                  <label className="enrollment-select-record">
+                    <input type="checkbox" checked={selectedIds.includes(row.id)} disabled={!!busy}
+                      aria-label={`Seleccionar ficha de ${enrollmentName(row)}`}
+                      onChange={event => selectRecord(row.id, event.target.checked)} />
+                    <span><strong>{enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></span>
+                  </label>
                   <div className="enrollment-row-actions">
                     <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
                     <button className="enrollment-delete" type="button" disabled={!!busy}
@@ -188,18 +290,28 @@ export default function ExportMatriculas() {
         </section>
       )}
 
-      {record && (
-        <article className="enrollment-record" aria-labelledby="enrollment-record-title">
+      {record && <EnrollmentDetails record={record} headingRef={recordHeading} onBack={() => setRecord(null)} />}
+      <section className="enrollment-print" aria-label="Fichas para imprimir">
+        {printRecords.map(item => <EnrollmentDetails key={item.id} record={item} />)}
+      </section>
+    </main>
+  );
+}
+
+function EnrollmentDetails({ record, headingRef, onBack }: { record: EnrollmentRecord; headingRef?: Ref<HTMLHeadingElement>; onBack?: () => void }) {
+  return (
+        <article className="enrollment-record" aria-labelledby={`enrollment-record-${record.id}`}>
+          <p className="enrollment-print-title">Escuela Julio Montt Salamanca · Matrícula 2027</p>
           <header className="enrollment-record-heading">
             <div>
-              <h2 id="enrollment-record-title" ref={recordHeading} tabIndex={-1}>{enrollmentName(record)}</h2>
+              <h2 id={`enrollment-record-${record.id}`} ref={headingRef} tabIndex={-1}>{enrollmentName(record)}</h2>
               <dl className="enrollment-record-meta">
                 <div><dt>Fecha de matrícula</dt><dd>{enrollmentDate(record.fechaMatricula ?? '')}</dd></div>
                 <div><dt>Curso 2027</dt><dd>{record.curso}</dd></div>
                 <div><dt>Comprobante</dt><dd>{record.id}</dd></div>
               </dl>
             </div>
-            <button type="button" onClick={() => setRecord(null)}>Volver al listado</button>
+            {onBack && <button type="button" onClick={onBack}>Volver al listado</button>}
           </header>
           {enrollmentSections(record).map(section => (
             <section key={section.title} className="enrollment-record-section">
@@ -210,7 +322,5 @@ export default function ExportMatriculas() {
             </section>
           ))}
         </article>
-      )}
-    </main>
   );
 }

@@ -181,6 +181,18 @@ export const householdOptions = ["Solo madre", "Solo padre", "Ambos padres", "He
 export const enrollmentCourses = [
   'Pre-kínder',
   'Kínder',
-  ...Array.from({ length: 8 }, (_, index) => index + 1)
-    .flatMap((grade) => ['A', 'B'].map((section) => `${grade}°${section}`)),
+  ...Array.from({ length: 8 }, (_, index) => `${index + 1}°`),
 ];
+
+export function enrollmentLevel(course: string | undefined) {
+  const value = (course ?? '').trim();
+  const grade = /^([1-8])[°º]\s*[AB]?$/i.exec(value);
+  return grade ? `${grade[1]}°` : value;
+}
+
+export function enrollmentCourseVariants(course: string) {
+  const level = enrollmentLevel(course);
+  if (!enrollmentCourses.includes(level)) return [];
+  if (!/^[1-8]°$/.test(level)) return [level];
+  return [level, `${level}A`, `${level}B`, level.replace('°', 'º'), `${level.replace('°', 'º')}A`, `${level.replace('°', 'º')}B`];
+}

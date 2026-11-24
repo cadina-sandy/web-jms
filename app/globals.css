@@ -774,3 +774,103 @@
   background: #fff0f0;
   border-color: #a71919;
 }
+
+.enrollment-selection {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-block: 1rem;
+}
+
+.enrollment-selection label,
+.enrollment-select-record {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  cursor: pointer;
+}
+
+.enrollment-selection input,
+.enrollment-select-record input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #0b57a4;
+}
+
+.enrollment-select-record {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.enrollment-selection small {
+  width: 100%;
+  color: #40556e;
+}
+
+.enrollment-print,
+.enrollment-print-title {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body:has(.enrollment-admin) > :not(main),
+  .enrollment-admin > :not(.enrollment-print) {
+    display: none !important;
+  }
+
+  .enrollment-admin {
+    width: 100%;
+    padding: 0;
+    color: #111;
+  }
+
+  .enrollment-print,
+  .enrollment-print-title {
+    display: block;
+  }
+
+  .enrollment-print-title {
+    margin: 0 0 5mm;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .enrollment-print .enrollment-record {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    break-after: page;
+    font-size: 10pt;
+  }
+
+  .enrollment-print .enrollment-record:last-child {
+    break-after: auto;
+  }
+
+  .enrollment-print .enrollment-record-heading,
+  .enrollment-print .enrollment-record-section dl > div {
+    break-inside: avoid;
+  }
+
+  .enrollment-print h3 {
+    break-after: avoid;
+  }
+
+  .enrollment-print .enrollment-record-meta,
+  .enrollment-print .enrollment-record-section dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3mm 6mm;
+  }
+
+  .enrollment-print .enrollment-record-section {
+    padding-block: 4mm;
+  }
+}
