@@ -1,8 +1,11 @@
 'use client';
 
+import { Caveat } from 'next/font/google';
 import { useEffect, useRef, useState, type FormEvent, type Ref } from 'react';
 import { enrollmentCourses } from '@/lib/matricula/fields';
 import { enrollmentDate, enrollmentName, enrollmentSections, pageSize, type EnrollmentRecord, type EnrollmentSummary } from '@/lib/matricula/view';
+
+const creatorFont = Caveat({ subsets: ['latin'], weight: '400', display: 'swap' });
 
 export default function ExportMatriculas() {
   const [course, setCourse] = useState('');
@@ -304,6 +307,9 @@ export default function ExportMatriculas() {
       <section className="enrollment-print" aria-label="Fichas para imprimir">
         {printRecords.map(item => <EnrollmentDetails key={item.id} record={item} />)}
       </section>
+      <footer className={creatorFont.className} style={{ textAlign: 'center', fontSize: '14px', fontStyle: 'italic', padding: '32px 0 16px' }}>
+        Creado por Sandy Cadin Azócar
+      </footer>
     </main>
   );
 }
