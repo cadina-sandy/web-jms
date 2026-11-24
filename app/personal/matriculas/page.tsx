@@ -15,6 +15,8 @@ export default function ExportMatriculas() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [allMatchingSelected, setAllMatchingSelected] = useState(false);
   const [printRecords, setPrintRecords] = useState<EnrollmentRecord[]>([]);
+  const [role, setRole] = useState<'admin' | 'viewer' | null>(null);
+  const canManage = role === 'admin';
   const recordHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function ExportMatriculas() {
 
   function clearResults(resetSelection = true) {
     if (resetSelection) {
+      setRole(null);
       setSelectedIds([]);
       setAllMatchingSelected(false);
       setPrintRecords([]);
@@ -73,6 +76,7 @@ export default function ExportMatriculas() {
     try {
       const response = await request('consultar', { course: course || null, search, offset });
       const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
+      setRole(response.headers.get('X-Matricula-Role') === 'admin' ? 'admin' : 'viewer');
       setListing({ ...result, offset });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudieron consultar las fichas.');
@@ -97,7 +101,7 @@ export default function ExportMatriculas() {
   }
 
   async function deleteRecord(row: EnrollmentSummary) {
-    if (busy || !token || !listing) return;
+    if (!canManage || busy || !token || !listing) return;
     const name = enrollmentName(row);
     const confirmed = window.confirm(
       `¿Eliminar definitivamente la ficha de ${name}, curso ${row.curso}?\n\nComprobante: ${row.id}\n\nDejará de aparecer en las fichas y en el CSV. Esta acción no se puede deshacer.`,
@@ -129,7 +133,7 @@ export default function ExportMatriculas() {
   }
 
   async function selectAll(checked: boolean) {
-    if (busy || !token) return;
+    if (!canManage || busy || !token) return;
     if (!checked) {
       setSelectedIds([]);
       setAllMatchingSelected(false);
@@ -158,12 +162,13 @@ export default function ExportMatriculas() {
   }
 
   function selectRecord(id: string, checked: boolean) {
+    if (!canManage || busy) return;
     setSelectedIds(current => checked ? [...current, id] : current.filter(value => value !== id));
     setAllMatchingSelected(false);
   }
 
   async function printSelected() {
-    if (busy || !token || !selectedIds.length) return;
+    if (!canManage || busy || !token || !selectedIds.length) return;
     setBusy('print');
     setMessage('Preparando fichas para imprimir…');
     try {
@@ -183,7 +188,7 @@ export default function ExportMatriculas() {
   }
 
   async function download(format: 'csv' | 'docx') {
-    if (busy || !token || !selectedIds.length) return;
+    if (!canManage || busy || !token || !selectedIds.length) return;
     setBusy(format === 'docx' ? 'word' : 'csv');
     setMessage('');
     try {
@@ -209,12 +214,12 @@ export default function ExportMatriculas() {
 
   return (
     <main className="shell enrollment-admin">
-      <h1>Exportar matrícula 2027</h1>
+      <h1>Fichas de matrícula 2027</h1>
       <p className="enrollment-admin-intro">Consulta las fichas guardadas y selecciona las que quieras imprimir o descargar. Solo personal autorizado.</p>
       <form className="enrollment-admin-controls" onSubmit={searchForEnrollment}>
         <div className="enrollment-admin-filters">
           <label>
-            Clave de exportación
+            Clave de acceso
             <input type="password" autoComplete="off" required disabled={!!busy} value={token} onChange={event => { setToken(event.target.value); clearResults(); }} />
           </label>
           <label>
@@ -236,24 +241,26 @@ export default function ExportMatriculas() {
         {message && <p role="status">{message}</p>}
       </form>
 
+      {role === 'viewer' && <p role="status">Acceso de solo lectura. Puedes buscar y ver fichas; la selección, impresión, descarga y eliminación están desactivadas.</p>}
+
       {listing && !record && (
         <section className="enrollment-admin-results" aria-labelledby="saved-enrollments-title">
           <h2 id="saved-enrollments-title">Fichas guardadas</h2>
           {listing.records.length > 0 && (
             <div className="enrollment-selection">
               <label>
-                <input type="checkbox" checked={allMatchingSelected} disabled={!!busy}
+                <input type="checkbox" checked={allMatchingSelected} disabled={!canManage || !!busy}
                   onChange={event => { void selectAll(event.target.checked); }} />
                 Seleccionar todos
               </label>
               <span>{selectedIds.length} {selectedIds.length === 1 ? 'ficha seleccionada' : 'fichas seleccionadas'}</span>
-              <button type="button" disabled={!selectedIds.length || !!busy} onClick={printSelected}>
+              <button type="button" disabled={!canManage || !selectedIds.length || !!busy} onClick={printSelected}>
                 {busy === 'print' ? 'Preparando impresión…' : 'Imprimir seleccionadas'}
               </button>
-              <button type="button" disabled={!selectedIds.length || !!busy} onClick={() => download('csv')}>
+              <button type="button" disabled={!canManage || !selectedIds.length || !!busy} onClick={() => download('csv')}>
                 {busy === 'csv' ? 'Exportando…' : 'Descargar CSV'}
               </button>
-              <button type="button" disabled={!selectedIds.length || !!busy} onClick={() => download('docx')}>
+              <button type="button" disabled={!canManage || !selectedIds.length || !!busy} onClick={() => download('docx')}>
                 {busy === 'word' ? 'Preparando Word…' : 'Descargar editable formato ficha'}
               </button>
               <small>Las tres acciones usan las fichas marcadas. «Seleccionar todos» incluye todas las páginas de esta búsqueda.</small>
@@ -265,14 +272,14 @@ export default function ExportMatriculas() {
               {listing.records.map(row => (
                 <li key={row.id}>
                   <label className="enrollment-select-record">
-                    <input type="checkbox" checked={selectedIds.includes(row.id)} disabled={!!busy}
+                    <input type="checkbox" checked={selectedIds.includes(row.id)} disabled={!canManage || !!busy}
                       aria-label={`Seleccionar ficha de ${enrollmentName(row)}`}
                       onChange={event => selectRecord(row.id, event.target.checked)} />
                     <span><strong>{enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></span>
                   </label>
                   <div className="enrollment-row-actions">
                     <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
-                    <button className="enrollment-delete" type="button" disabled={!!busy}
+                    <button className="enrollment-delete" type="button" disabled={!canManage || !!busy}
                       aria-label={`Eliminar ficha de ${enrollmentName(row)}`} title="Eliminar ficha"
                       onClick={() => deleteRecord(row)}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -328,3 +335,4 @@ function EnrollmentDetails({ record, headingRef, onBack }: { record: EnrollmentR
         </article>
   );
 }
+

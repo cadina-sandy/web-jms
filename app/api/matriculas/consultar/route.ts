@@ -1,4 +1,4 @@
-import { authorizeStaff } from '@/lib/matricula/access';
+import { authorizeStaff, staffRole } from '@/lib/matricula/access';
 import { getSql, quote, readEnrollmentColumn } from '@/lib/matricula/db';
 import { enrollmentCourseVariants, enrollmentLevel, fields } from '@/lib/matricula/fields';
 import { databaseSchema, tableName } from '@/lib/matricula/target';
@@ -6,13 +6,15 @@ import { pageSize } from '@/lib/matricula/view';
 
 export const runtime = 'nodejs';
 
-const headers = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
+const privateHeaders = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
 const summaryColumns = ['id', 'fechaMatricula', 'curso', 'nombres', 'apellidoPaterno', 'apellidoMaterno'];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
-  const denied = authorizeStaff(request);
+  const denied = authorizeStaff(request, 'view');
   if (denied) return denied;
+  const role = staffRole(request);
+  const headers = { ...privateHeaders, 'X-Matricula-Role': role! };
   let body: { id?: unknown; ids?: unknown; course?: unknown; search?: unknown; offset?: unknown };
   try {
     body = await request.json();
@@ -22,6 +24,9 @@ export async function POST(request: Request) {
   }
 
   const { id, ids, course, search = '', offset = 0 } = body;
+  if (ids !== undefined && role !== 'admin') {
+    return Response.json({ error: 'Este acceso solo permite ver fichas individualmente.' }, { status: 403, headers });
+  }
   if (ids !== undefined && (!Array.isArray(ids) || !ids.length || ids.length > pageSize || ids.some(value => typeof value !== 'string' || !uuid.test(value)) || new Set(ids).size !== ids.length || id !== undefined)) {
     return Response.json({ error: 'Selecciona fichas válidas, sin repetir.' }, { status: 400, headers });
   }
@@ -68,3 +73,4 @@ export async function POST(request: Request) {
     return Response.json({ error: 'No se pudieron consultar las matrículas. Intenta nuevamente.' }, { status: 503, headers });
   }
 }
+
