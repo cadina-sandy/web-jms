@@ -2,6 +2,7 @@
 
 import { enrollmentCourses } from '@/lib/matricula/fields';
 import { fromForm, validate } from '@/lib/matricula/validation';
+import { uppercaseEnrollmentInput } from '@/lib/matricula/uppercase';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const schoolProfileUrl = 'https://mime.mineduc.cl/mvc/ficha?rbd=9122';
@@ -781,6 +782,12 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
     first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     first?.focus({ preventScroll: true });
   }
+  function uppercaseEnteredText(event: React.FormEvent<HTMLFormElement>) {
+    const input = event.target;
+    if (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement) {
+      uppercaseEnrollmentInput(input, (event.nativeEvent as InputEvent).isComposing);
+    }
+  }
   function recheckShownErrors(event: React.FormEvent<HTMLFormElement>) {
     const field = event.target;
     const hasInvalidEmail = field instanceof HTMLInputElement && field.hasAttribute('data-email-part') && field.value.includes('@');
@@ -805,6 +812,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || saved) return;
+    event.currentTarget.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach(input => uppercaseEnrollmentInput(input));
     const { answers, errors } = validate(fromForm(new FormData(event.currentTarget)));
     displayErrors(errors);
     if (Object.keys(errors).length) { setMessage('Revisa los campos indicados.'); return; }
@@ -879,7 +887,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
             {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
             <p>Todos los campos son obligatorios y la información ingresada es de uso confidencial del colegio. Si no cuenta con algún dato, complete el campo con «No aplica».</p>
-            <form ref={formRef} noValidate onSubmit={submit} onChange={recheckShownErrors}>
+            <form ref={formRef} noValidate autoCapitalize="characters" onSubmit={submit} onChangeCapture={uppercaseEnteredText} onChange={recheckShownErrors}>
               <fieldset disabled={busy || saved} className="enrollment-inputs">
               <div className="enrollment-header-fields">
                 <label>
@@ -1142,3 +1150,4 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
       </section>
   );
 }
+
