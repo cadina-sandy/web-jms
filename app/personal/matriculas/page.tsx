@@ -301,10 +301,11 @@ export default function ExportMatriculas() {
 function EnrollmentDetails({ record, headingRef, onBack }: { record: EnrollmentRecord; headingRef?: Ref<HTMLHeadingElement>; onBack?: () => void }) {
   return (
         <article className="enrollment-record" aria-labelledby={`enrollment-record-${record.id}`}>
-          <p className="enrollment-print-title">Escuela Julio Montt Salamanca · Matrícula 2027</p>
           <header className="enrollment-record-heading">
             <div>
-              <h2 id={`enrollment-record-${record.id}`} ref={headingRef} tabIndex={-1}>{enrollmentName(record)}</h2>
+              <h2 id={`enrollment-record-${record.id}`} ref={headingRef} tabIndex={-1}>Ficha de matrícula 2027</h2>
+              <p className="enrollment-record-school">Escuela Julio Montt Salamanca</p>
+              <p className="enrollment-record-student"><strong>Estudiante</strong> {enrollmentName(record)}</p>
               <dl className="enrollment-record-meta">
                 <div><dt>Fecha de matrícula</dt><dd>{enrollmentDate(record.fechaMatricula ?? '')}</dd></div>
                 <div><dt>Curso 2027</dt><dd>{record.curso}</dd></div>

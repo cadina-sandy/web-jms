@@ -744,15 +744,126 @@
 .enrollment-admin-list li span, .enrollment-admin-list li strong { display: block; overflow-wrap: anywhere; }
 .enrollment-admin-list li span { margin-top: .2rem; color: #40556e; }
 
-.enrollment-record-heading { padding-bottom: 1.2rem; border-bottom: 1px solid #ccd8e5; }
-.enrollment-record-heading > div { flex: 1 1 540px; min-width: 0; }
-.enrollment-record [tabindex="-1"] { scroll-margin-top: 110px; }
-.enrollment-record-meta { margin: .65rem 0 0; }
-.enrollment-record-section { padding-block: 1.15rem; border-bottom: 1px solid #e0e7ee; }
-.enrollment-record-section:last-child { padding-bottom: 0; border-bottom: 0; }
-.enrollment-record-section dl { margin: .7rem 0 0; }
-.enrollment-record dt { font-weight: 700; color: #40556e; }
-.enrollment-record dd { margin: .25rem 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.enrollment-admin .enrollment-record {
+  box-sizing: border-box;
+  width: min(100%, 216mm);
+  margin-inline: auto;
+  padding: 8mm;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #536074;
+  font-weight: 400;
+}
+
+.enrollment-record-heading {
+  padding-bottom: 4mm;
+  border: 0;
+}
+
+.enrollment-record-heading > div {
+  flex: 1 1 460px;
+  min-width: 0;
+}
+
+.enrollment-admin .enrollment-record h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  color: #1b3559;
+  font-weight: 800;
+}
+
+.enrollment-record-school {
+  margin: 2px 0 10px;
+  color: #48566a;
+  font-weight: 600;
+}
+
+.enrollment-record-student {
+  margin: 0 0 3px;
+}
+
+.enrollment-record strong,
+.enrollment-record dt {
+  color: #48566a;
+  font-weight: 600;
+}
+
+.enrollment-record [tabindex="-1"] {
+  scroll-margin-top: 110px;
+}
+
+.enrollment-record-meta {
+  display: flex;
+  gap: 3px 14px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.enrollment-record-meta > div {
+  min-width: 0;
+}
+
+.enrollment-record-meta dt,
+.enrollment-record-meta dd,
+.enrollment-record-section dt,
+.enrollment-record-section dd {
+  display: inline;
+}
+
+.enrollment-record dd {
+  margin: 0 0 0 .3em;
+  color: #536074;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.enrollment-record-section {
+  padding: 0;
+  margin: 0 0 4px;
+  border: 0;
+}
+
+.enrollment-admin .enrollment-record-section h3 {
+  margin: 0;
+  padding: 4px 6px;
+  background: #eef2f6;
+  color: #1b3559;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.enrollment-record-section dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+}
+
+.enrollment-record-section dl > div {
+  padding: 3px 6px;
+  border-bottom: .5px solid #e3e8ee;
+  min-width: 0;
+}
+
+.enrollment-record-section dl > div:nth-child(odd) {
+  border-right: .5px solid #e3e8ee;
+}
+
+@media (max-width: 560px) {
+  .enrollment-admin .enrollment-record {
+    padding: 14px;
+  }
+
+  .enrollment-record-section dl {
+    grid-template-columns: 1fr;
+  }
+
+  .enrollment-record-section dl > div:nth-child(odd) {
+    border-right: 0;
+  }
+}
 
 .enrollment-row-actions {
   display: flex;
@@ -809,15 +920,14 @@
   color: #40556e;
 }
 
-.enrollment-print,
-.enrollment-print-title {
+.enrollment-print {
   display: none;
 }
 
 @media print {
-  @page {
-    size: A4;
-    margin: 12mm;
+  @page enrollment-ficha {
+    size: letter;
+    margin: 10mm;
   }
 
   body:has(.enrollment-admin) > :not(main),
@@ -827,50 +937,67 @@
 
   .enrollment-admin {
     width: 100%;
+    margin: 0;
     padding: 0;
-    color: #111;
   }
 
-  .enrollment-print,
-  .enrollment-print-title {
+  .enrollment-print {
     display: block;
-  }
-
-  .enrollment-print-title {
-    margin: 0 0 5mm;
-    font-size: 11pt;
-    font-weight: 700;
+    page: enrollment-ficha;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   .enrollment-print .enrollment-record {
+    width: 100%;
     margin: 0;
     padding: 0;
     border: 0;
     border-radius: 0;
     break-after: page;
-    font-size: 10pt;
+    font-size: 10.2pt;
+    line-height: 1.25;
   }
 
   .enrollment-print .enrollment-record:last-child {
     break-after: auto;
   }
 
-  .enrollment-print .enrollment-record-heading,
-  .enrollment-print .enrollment-record-section dl > div {
+  .enrollment-print .enrollment-record h2 {
+    font-size: 18pt;
+  }
+
+  .enrollment-print .enrollment-record-school {
+    font-size: 11pt;
+    margin-bottom: 3mm;
+  }
+
+  .enrollment-print .enrollment-record-heading {
+    padding-bottom: 3mm;
     break-inside: avoid;
   }
 
-  .enrollment-print h3 {
+  .enrollment-print .enrollment-record-section {
+    margin-bottom: 1mm;
+  }
+
+  .enrollment-print .enrollment-record-section h3 {
+    padding: 1mm 1.5mm;
+    font-size: 10.5pt;
     break-after: avoid;
   }
 
-  .enrollment-print .enrollment-record-meta,
   .enrollment-print .enrollment-record-section dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3mm 6mm;
+    gap: 0;
   }
 
-  .enrollment-print .enrollment-record-section {
-    padding-block: 4mm;
+  .enrollment-print .enrollment-record-section dl > div {
+    padding: .6mm 1.5mm;
+    break-inside: avoid;
+  }
+
+  .enrollment-print .enrollment-record-section dl > div:nth-child(odd) {
+    border-right: .5px solid #e3e8ee;
   }
 }
