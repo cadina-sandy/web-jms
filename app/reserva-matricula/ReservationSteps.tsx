@@ -854,7 +854,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
   return (
       <section className="section reservation-steps" id="pasos-matricula" aria-labelledby="titulo-pasos-matricula">
         <div className="shell">
-          <h2 id="titulo-pasos-matricula">Pasos</h2>
+          <h2 id="titulo-pasos-matricula">Pasos Pre-Matrícula 2027</h2>
           <ol className="reservation-step-list">
             <li>
               <h3>Paso 1</h3>
@@ -875,7 +875,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                     formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-              ><strong>MATRÍCULA 2027 AQUÍ</strong></button></p>
+              ><strong>PRE-MATRÍCULA 2027 AQUÍ</strong></button></p>
             </li>
             <li>
               <h3>Paso 2</h3>
@@ -884,7 +884,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
           </ol>
 
           <section className="reservation-form" id="formulario-matricula" aria-labelledby="titulo-formulario" hidden={!open}>
-            <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de matrícula 2027</h3>
+            <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de Pre-Matrícula 2027</h3>
             {process.env.NEXT_PUBLIC_MATRICULA_URL ? <p>Para guardar tu ficha, <a href={process.env.NEXT_PUBLIC_MATRICULA_URL}>abre la matrícula en nuestro sitio oficial</a>.</p> : null}
             <p>Todos los campos son obligatorios y la información ingresada es de uso confidencial del colegio. Si no cuenta con algún dato, complete el campo con «No aplica».</p>
             <form ref={formRef} noValidate autoCapitalize="sentences" onSubmit={submit} onChangeCapture={capitalizeEnteredText} onChange={recheckShownErrors}>

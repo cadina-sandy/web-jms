@@ -3,7 +3,7 @@ import SiteHeader from '../SiteHeader';
 import ReservationSteps from './ReservationSteps';
 
 export const metadata: Metadata = {
-  title: 'Reserva tu matricula | Escuela Julio Montt Salamanca',
+  title: 'Pre-Matrícula 2027 | Escuela Julio Montt Salamanca',
 };
 
 export default function ReservationPage() {
