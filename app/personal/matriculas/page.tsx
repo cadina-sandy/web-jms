@@ -9,7 +9,7 @@ export default function ExportMatriculas() {
   const [token, setToken] = useState('');
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | 'select' | 'print' | null>(null);
+  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | 'select' | 'print' | 'word' | null>(null);
   const [listing, setListing] = useState<{ records: EnrollmentSummary[]; hasMore: boolean; offset: number } | null>(null);
   const [record, setRecord] = useState<EnrollmentRecord | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -182,21 +182,19 @@ export default function ExportMatriculas() {
     }
   }
 
-  async function download() {
-    if (busy || !token) return;
-    setBusy('csv');
+  async function download(format: 'csv' | 'docx') {
+    if (busy || !token || !selectedIds.length) return;
+    setBusy(format === 'docx' ? 'word' : 'csv');
     setMessage('');
     try {
-      const response = await request('exportar', { course: course || null });
+      const response = await request('exportar', { ids: selectedIds, course: course || null, format });
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement('a');
       link.href = url;
-      link.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ?? 'matriculas-2027.csv';
+      link.download = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ?? `matriculas-2027.${format}`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setToken('');
-      clearResults();
-      setMessage('CSV descargado.');
+      setMessage(format === 'docx' ? 'Archivo Word descargado.' : 'CSV descargado.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo descargar. Intenta nuevamente.');
     } finally {
@@ -212,7 +210,7 @@ export default function ExportMatriculas() {
   return (
     <main className="shell enrollment-admin">
       <h1>Exportar matrícula 2027</h1>
-      <p className="enrollment-admin-intro">Consulta las fichas guardadas o descarga el CSV del curso seleccionado. Solo personal autorizado.</p>
+      <p className="enrollment-admin-intro">Consulta las fichas guardadas y selecciona las que quieras imprimir o descargar. Solo personal autorizado.</p>
       <form className="enrollment-admin-controls" onSubmit={searchForEnrollment}>
         <div className="enrollment-admin-filters">
           <label>
@@ -233,10 +231,8 @@ export default function ExportMatriculas() {
         </div>
         <div className="enrollment-admin-actions">
           <button className="enrollment-admin-primary" type="submit" disabled={!token || !!busy}>{busy === 'list' ? 'Buscando…' : 'Ver fichas'}</button>
-          <button type="button" disabled={!token || !!busy} onClick={download}>{busy === 'csv' ? 'Exportando…' : 'Descargar CSV'}</button>
           {token && <button type="button" disabled={!!busy} onClick={() => { setToken(''); setSearch(''); clearResults(); }}>Cerrar consulta</button>}
         </div>
-        <p className="enrollment-admin-csv-note">Campos del CSV{' · '}<strong>Todos los campos con datos</strong></p>
         {message && <p role="status">{message}</p>}
       </form>
 
@@ -254,7 +250,14 @@ export default function ExportMatriculas() {
               <button type="button" disabled={!selectedIds.length || !!busy} onClick={printSelected}>
                 {busy === 'print' ? 'Preparando impresión…' : 'Imprimir seleccionadas'}
               </button>
-              <small>«Seleccionar todos» incluye todas las páginas de esta búsqueda.</small>
+              <button type="button" disabled={!selectedIds.length || !!busy} onClick={() => download('csv')}>
+                {busy === 'csv' ? 'Exportando…' : 'Descargar CSV'}
+              </button>
+              <button type="button" disabled={!selectedIds.length || !!busy} onClick={() => download('docx')}>
+                {busy === 'word' ? 'Preparando Word…' : 'Descargar editable formato ficha'}
+              </button>
+              <small>Las tres acciones usan las fichas marcadas. «Seleccionar todos» incluye todas las páginas de esta búsqueda.</small>
+              <small>CSV con todos los campos con datos. El editable se descarga en Word (.docx), con formato de ficha.</small>
             </div>
           )}
           {listing.records.length ? (
