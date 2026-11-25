@@ -307,7 +307,7 @@ export default function ExportMatriculas() {
       <section className="enrollment-print" aria-label="Fichas para imprimir">
         {printRecords.map(item => <EnrollmentDetails key={item.id} record={item} />)}
       </section>
-      <footer className={creatorFont.className} style={{ textAlign: 'center', fontSize: '14px', fontStyle: 'italic', padding: '32px 0 16px' }}>
+      <footer className={creatorFont.className} style={{ textAlign: 'center', fontSize: '14px', fontStyle: 'italic', padding: '32px 0 16px', background: 'transparent', color: 'inherit', border: 'none', boxShadow: 'none' }}>
         Creado por Sandy Cadin Azócar
       </footer>
     </main>
