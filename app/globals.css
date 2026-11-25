@@ -1041,3 +1041,16 @@
 .jms-help-success button{border:1px solid #ced7e4;border-radius:7px;background:white;color:#12265f;padding:10px 16px;font-weight:600;min-height:44px;cursor:pointer}
 @media(max-width:680px){.jms-help{right:16px;bottom:max(20px,env(safe-area-inset-bottom))}.jms-help-panel{padding:20px}}
 @media print{.jms-help{display:none!important}}
+
+.super-admin .super-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0}
+.super-admin .super-filters label{display:flex;flex-direction:column;gap:6px;font-weight:600}
+.super-admin .super-table-scroll{overflow:auto;margin-top:24px}
+.super-admin table{border-collapse:collapse;min-width:700px;width:100%;font-size:14px;line-height:1.5}
+.super-admin caption{text-align:left;padding-bottom:12px;font-weight:600;color:#48566a}
+.super-admin th,.super-admin td{padding:12px;text-align:left;vertical-align:top;border-bottom:1px solid #dce4ed;overflow-wrap:anywhere}
+.super-admin th{background:#eef2f6;color:#1b3559;font-weight:800}
+.super-admin td:last-child{max-width:330px}.super-admin td small{display:block;margin-top:6px;color:#48566a;white-space:pre-wrap}
+.super-admin button[aria-current=page]{background:#12265f;color:white}
+.super-admin button.super-danger{background:#a32937;color:white;border-color:#a32937}
+.super-admin button.super-danger:not(:disabled):hover{background:#82212c}
+@media(max-width:600px){.super-admin .super-filters{grid-template-columns:1fr}}

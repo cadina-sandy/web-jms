@@ -18,8 +18,8 @@ export default function ExportMatriculas() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [allMatchingSelected, setAllMatchingSelected] = useState(false);
   const [printRecords, setPrintRecords] = useState<EnrollmentRecord[]>([]);
-  const [role, setRole] = useState<'admin' | 'viewer' | null>(null);
-  const canManage = role === 'admin';
+  const [role, setRole] = useState<'admin' | 'viewer' | 'super' | null>(null);
+  const canManage = role === 'admin' || role === 'super';
   const recordHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function ExportMatriculas() {
     try {
       const response = await request('consultar', { course: course || null, search, offset });
       const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
-      setRole(response.headers.get('X-Matricula-Role') === 'admin' ? 'admin' : 'viewer');
+      setRole(response.headers.get('X-Matricula-Role') === 'super' ? 'super' : response.headers.get('X-Matricula-Role') === 'admin' ? 'admin' : 'viewer');
       setListing({ ...result, offset });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudieron consultar las fichas.');
@@ -107,7 +107,7 @@ export default function ExportMatriculas() {
     if (!canManage || busy || !token || !listing) return;
     const name = enrollmentName(row);
     const confirmed = window.confirm(
-      `¿Eliminar definitivamente la ficha de ${name}, curso ${row.curso}?\n\nComprobante: ${row.id}\n\nDejará de aparecer en las fichas y en el CSV. Esta acción no se puede deshacer.`,
+      `¿Enviar a la papelera la ficha de ${name}, curso ${row.curso}?\n\nComprobante: ${row.id}\n\nDejará de aparecer en las fichas y en el CSV. La ficha quedará guardada hasta que super administración confirme el borrado definitivo.`,
     );
     if (!confirmed) return;
     setBusy('delete');
@@ -119,14 +119,14 @@ export default function ExportMatriculas() {
       // Update immediately even if refreshing the current page fails.
       setListing(current => current ? { ...current, records: current.records.filter(item => item.id !== row.id) } : null);
       setRecord(null);
-      setMessage(`Ficha de ${name} eliminada.`);
+      setMessage(`Ficha de ${name} enviada a la papelera.`);
       const offset = listing.records.length === 1 && listing.offset > 0 ? listing.offset - pageSize : listing.offset;
       try {
         const response = await request('consultar', { course: course || null, search, offset });
         const result = await response.json() as { records: EnrollmentSummary[]; hasMore: boolean };
         setListing({ ...result, offset });
       } catch {
-        setMessage(`Ficha de ${name} eliminada. Pulsa «Ver fichas» para actualizar el listado.`);
+        setMessage(`Ficha de ${name} enviada a la papelera. Pulsa «Ver fichas» para actualizar el listado.`);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo eliminar la ficha. Intenta nuevamente.');
@@ -283,7 +283,7 @@ export default function ExportMatriculas() {
                   <div className="enrollment-row-actions">
                     <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
                     <button className="enrollment-delete" type="button" disabled={!canManage || !!busy}
-                      aria-label={`Eliminar ficha de ${enrollmentName(row)}`} title="Eliminar ficha"
+                      aria-label={`Enviar a papelera la ficha de ${enrollmentName(row)}`} title="Enviar ficha a la papelera"
                       onClick={() => deleteRecord(row)}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" />
@@ -341,4 +341,5 @@ function EnrollmentDetails({ record, headingRef, onBack }: { record: EnrollmentR
         </article>
   );
 }
+
 

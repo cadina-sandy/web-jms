@@ -1,4 +1,4 @@
-import { authorizeStaff } from '@/lib/matricula/access';
+import { authorizeStaff, staffRole } from '@/lib/matricula/access';
 import { databaseSchema, tableName } from '@/lib/matricula/target';
 import { enrollmentCourseVariants, enrollmentLevel, fields } from '@/lib/matricula/fields';
 import { getSql, readEnrollmentColumn } from '@/lib/matricula/db';
@@ -6,6 +6,7 @@ import { labels } from '@/lib/matricula/labels';
 import { csv } from '@/lib/matricula/csv';
 import { enrollmentWord } from '@/lib/matricula/word';
 import { validEnrollmentSelection } from '@/lib/matricula/selection';
+import { ensureHistoryStorage, recordHistory } from '@/lib/matricula/history';
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
   const denied = authorizeStaff(request);
@@ -31,8 +32,9 @@ export async function POST(request: Request) {
   }
   if (!Array.isArray(columns) || !columns.length || columns.length > allowed.length || new Set(columns).size !== columns.length || columns.some(c => typeof c !== 'string' || !allowed.includes(c))) return Response.json({ error: 'Selecciona columnas válidas, sin repetir.' }, { status: 400 });
   try {
+    await ensureHistoryStorage();
     const parameters: unknown[] = [];
-    const filters: string[] = [];
+    const filters: string[] = ['deleted_at IS NULL'];
     if (course) {
       parameters.push(enrollmentCourseVariants(course as string));
       filters.push(`"curso" = ANY($${parameters.length}::text[])`);
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     }
     const where = filters.length ? ' WHERE ' + filters.join(' AND ') : '';
     const rows = await getSql().query(
-      `SELECT ${columns.map(readEnrollmentColumn).join(',')} FROM ${tableName(databaseSchema())} AS enrollment${where} ORDER BY created_at, id LIMIT 10001`,
+      `SELECT ${[...new Set(['id', ...columns])].map(readEnrollmentColumn).join(',')} FROM ${tableName(databaseSchema())} AS enrollment${where} ORDER BY created_at, id LIMIT 10001`,
       parameters,
     );
     if (rows.length > 10000) return Response.json({ error: 'Más de 10000 fichas. Solicita una exportación por lotes a administración.' }, { status: 413 });
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
     if (format === 'docx') {
       const records = rows.map(row => ({ ...row, id: String(row.id), curso: enrollmentLevel(row.curso) }));
       const file = await enrollmentWord(records);
+      await recordHistory('exportar_word', staffRole(request)!, rows.map(row => String(row.id)), { count: rows.length, course: course ?? null });
       return new Response(new Uint8Array(file), { headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': 'attachment; filename="fichas-matricula-2027.docx"',
@@ -66,6 +69,8 @@ export async function POST(request: Request) {
     if (!exportedColumns.length) {
       return Response.json({ error: 'No hay matrículas para la selección.' }, { status: 404 });
     }
+    await recordHistory('exportar_csv', staffRole(request)!, rows.map(row => String(row.id)), { count: rows.length, course: course ?? null });
     return new Response(csv(exportedColumns, rows.map(row => ({ ...row, curso: enrollmentLevel(row.curso) })), labels), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="matriculas-2027${courseSuffix}.csv"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
   } catch { return Response.json({ error: 'No se pudo exportar. Verifica que exista una matrícula guardada.' }, { status: 503 }); }
 }
+

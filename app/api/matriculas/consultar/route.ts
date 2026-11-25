@@ -4,6 +4,8 @@ import { enrollmentCourseVariants, enrollmentLevel, fields } from '@/lib/matricu
 import { databaseSchema, tableName } from '@/lib/matricula/target';
 import { pageSize } from '@/lib/matricula/view';
 
+import { ensureHistoryStorage, recordHistory } from '@/lib/matricula/history';
+
 export const runtime = 'nodejs';
 
 const privateHeaders = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
   }
 
   const { id, ids, course, search = '', offset = 0 } = body;
-  if (ids !== undefined && role !== 'admin') {
+  if (ids !== undefined && role !== 'admin' && role !== 'super') {
     return Response.json({ error: 'Este acceso solo permite ver fichas individualmente.' }, { status: 403, headers });
   }
   if (ids !== undefined && (!Array.isArray(ids) || !ids.length || ids.length > pageSize || ids.some(value => typeof value !== 'string' || !uuid.test(value)) || new Set(ids).size !== ids.length || id !== undefined)) {
@@ -41,29 +43,33 @@ export async function POST(request: Request) {
   }
 
   try {
+    await ensureHistoryStorage();
     const sql = getSql();
     const table = tableName(databaseSchema());
     if (typeof id === 'string') {
-      const [record] = await sql.query(`SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = $1`, [id]);
+      const [record] = await sql.query(`SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = $1 AND deleted_at IS NULL`, [id]);
       if (!record) return Response.json({ error: 'No se encontró esa ficha.' }, { status: 404, headers });
+      await recordHistory('ver', role!, [id]);
       return Response.json({ record: { ...record, curso: enrollmentLevel(record.curso) } }, { headers });
     }
     if (Array.isArray(ids)) {
       const records = await sql.query(
-        `SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = ANY($1::uuid[]) ORDER BY array_position($1::uuid[], id)`,
+        `SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL ORDER BY array_position($1::uuid[], id)`,
         [ids],
       );
       if (records.length !== ids.length) return Response.json({ error: 'Una ficha seleccionada ya no está disponible. Actualiza el listado.' }, { status: 409, headers });
+      await recordHistory('preparar_impresion', role!, records.map(row => String(row.id)), { count: records.length });
       return Response.json({ records: records.map(row => ({ ...row, curso: enrollmentLevel(row.curso) })) }, { headers });
     }
     const name = `regexp_replace(concat_ws(' ', nullif(trim(nombres), ''), nullif(trim("apellidoPaterno"), ''), nullif(trim("apellidoMaterno"), '')), '[[:space:]]+', ' ', 'g')`;
     const rows = await sql.query(
       `SELECT ${summaryColumns.map(quote).join(', ')} FROM ${table}
-       WHERE ($1::text[] IS NULL OR curso = ANY($1::text[]))
+       WHERE deleted_at IS NULL AND ($1::text[] IS NULL OR curso = ANY($1::text[]))
          AND strpos(translate(lower(${name}), 'áéíóúüñ', 'aeiouun'), translate(lower($2), 'áéíóúüñ', 'aeiouun')) > 0
        ORDER BY created_at DESC, id LIMIT $3 OFFSET $4`,
       [typeof course === 'string' ? enrollmentCourseVariants(course) : null, search.trim().replace(/\s+/g, ' '), pageSize + 1, offset],
     );
+    await recordHistory('listar', role!, rows.slice(0, pageSize).map(row => String(row.id)), { count: Math.min(rows.length, pageSize), course: course ?? null });
     return Response.json({ records: rows.slice(0, pageSize).map(row => ({ ...row, curso: enrollmentLevel(row.curso) })), hasMore: rows.length > pageSize }, { headers });
   } catch (error) {
     if (typeof error === 'object' && error && 'code' in error && error.code === '42P01') {
@@ -73,4 +79,5 @@ export async function POST(request: Request) {
     return Response.json({ error: 'No se pudieron consultar las matrículas. Intenta nuevamente.' }, { status: 503, headers });
   }
 }
+
 

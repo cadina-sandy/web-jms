@@ -1,6 +1,5 @@
-import { authorizeStaff } from '@/lib/matricula/access';
-import { getSql } from '@/lib/matricula/db';
-import { databaseSchema, tableName } from '@/lib/matricula/target';
+import { authorizeStaff, staffRole } from '@/lib/matricula/access';
+import { changeEnrollmentState } from '@/lib/matricula/history';
 
 export const runtime = 'nodejs';
 
@@ -22,16 +21,14 @@ export async function DELETE(request: Request) {
     return Response.json({ error: 'Comprobante inválido.' }, { status: 400, headers });
   }
   try {
-    const rows = await getSql().query(
-      `DELETE FROM ${tableName(databaseSchema())} WHERE id = $1 RETURNING id`,
-      [body.id],
-    );
+    const rows = await changeEnrollmentState(body.id, staffRole(request)!, 'enviar_papelera');
     if (!rows.length) return Response.json({ error: 'No se encontró esa ficha. Actualiza el listado.' }, { status: 404, headers });
-    return Response.json({ id: body.id }, { headers });
+    return Response.json({ id: body.id, status: 'pending_deletion' }, { headers });
   } catch (error) {
     if (typeof error === 'object' && error && 'code' in error && error.code === '42P01') {
       return Response.json({ error: 'No se encontró esa ficha. Actualiza el listado.' }, { status: 404, headers });
     }
-    return Response.json({ error: 'No se pudo eliminar la ficha. Intenta nuevamente.' }, { status: 503, headers });
+    return Response.json({ error: 'No se pudo enviar la ficha a la papelera. Intenta nuevamente.' }, { status: 503, headers });
   }
 }
+
