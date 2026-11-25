@@ -1001,3 +1001,43 @@
     border-right: .5px solid #e3e8ee;
   }
 }
+
+
+/* Contact help: scoped styles, independent of the enrollment form. */
+.jms-help{position:fixed;right:24px;bottom:max(24px,env(safe-area-inset-bottom));z-index:90;color-scheme:light;color:#17233e;font-size:14px;line-height:1.5}
+.jms-help button,.jms-help input,.jms-help textarea{font:inherit}
+.jms-help-trigger{width:48px;height:48px;display:grid;place-items:center;border:0;border-radius:50%;background:#12265f;color:#fff;box-shadow:0 4px 18px #12265f33;cursor:pointer}
+.jms-help-trigger>span{display:grid;place-items:center;width:24px;height:24px;border:1.8px solid white;border-radius:50%;font-size:18px;font-weight:700;line-height:1}
+.jms-help-tip{position:absolute;right:60px;bottom:4px;white-space:nowrap;background:#12265f;color:#fff;border-radius:9px;padding:10px 14px;font-size:14px;opacity:0;pointer-events:none}
+.jms-help-trigger:hover+.jms-help-tip,.jms-help-trigger:focus-visible+.jms-help-tip{opacity:1}
+.jms-help-trigger[aria-expanded=true]+.jms-help-tip{display:none}
+.jms-help-panel{position:absolute;right:0;bottom:62px;width:352px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 110px);overflow:auto;padding:22px;background:#fff;border:1px solid #d7dfea;border-top:4px solid #ffdc3d;border-radius:16px;box-shadow:0 16px 60px #11234b26}
+.jms-help-panel[hidden]{display:none}
+.jms-help-heading{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.jms-help .jms-help-heading h2{margin:0;padding:0;color:#12265f;font-family:inherit;font-size:20px;line-height:1.3;letter-spacing:-.3px;font-weight:800}
+.jms-help-close{width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;margin:-12px -12px -6px 0;border:0;border-radius:7px;background:transparent;color:#526077;cursor:pointer;font-size:26px!important}
+.jms-help-close:hover{background:#f4f7fb}
+.jms-help-description{margin:8px 0 18px;color:#536179;font-size:14px;line-height:1.5}
+.jms-help fieldset{padding:0;margin:0;border:0;min-width:0}
+.jms-help label{display:block;margin:13px 0 6px;font-weight:600;color:#243659;font-size:14px}
+.jms-help label:first-child{margin-top:0}
+.jms-help input,.jms-help textarea{display:block;width:100%;padding:10px 11px;border:1px solid #aab8ca;border-radius:7px;background:#fff;color:#17233e;font-size:14px;line-height:1.4}
+.jms-help input{height:42px}
+.jms-help input::placeholder,.jms-help textarea::placeholder{color:#66758a;opacity:1}
+.jms-help textarea{min-height:82px;max-height:170px;resize:vertical}
+.jms-help [aria-invalid=true]{border-color:#a32937}
+.jms-help-count{margin:4px 0 0;text-align:right;font-size:12px;color:#536179}
+.jms-help-note{font-size:12px;color:#536179;line-height:1.5;margin:12px 0 15px}
+.jms-help-send{display:block;width:100%;min-height:44px;padding:10px;border:0;border-radius:8px;background:#ffdc3d;color:#12265f;font-size:14px;font-weight:800!important;cursor:pointer}
+.jms-help-send:hover{background:#f7d12b}
+.jms-help button:disabled{opacity:.65;cursor:wait}
+.jms-help :is(button,input,textarea):focus-visible{outline:3px solid #1672c5;outline-offset:3px}
+.jms-help-field-error{color:#a32937;margin:6px 0;font-size:14px;line-height:1.4}
+.jms-help-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.jms-help-success{text-align:center;padding:16px 0 8px}
+.jms-help-success>span{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 15px;border-radius:50%;background:#e8f6ef;color:#24724e;font-size:24px}
+.jms-help .jms-help-success h3{font-size:20px;color:#12265f;line-height:1.3;margin:0 0 10px}
+.jms-help-success p{font-size:14px;color:#536179}
+.jms-help-success button{border:1px solid #ced7e4;border-radius:7px;background:white;color:#12265f;padding:10px 16px;font-weight:600;min-height:44px;cursor:pointer}
+@media(max-width:680px){.jms-help{right:16px;bottom:max(20px,env(safe-area-inset-bottom))}.jms-help-panel{padding:20px}}
+@media print{.jms-help{display:none!important}}

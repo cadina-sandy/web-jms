@@ -1,5 +1,7 @@
 'use client';
 
+import HelpContact from './HelpContact';
+
 import { enrollmentCourses } from '@/lib/matricula/fields';
 import { fromForm, validate } from '@/lib/matricula/validation';
 import { capitalizeEnrollmentInput } from '@/lib/matricula/capitalization';
@@ -1147,7 +1149,9 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
             </form>
           </section>
         </div>
+        {(!open || saved) && <HelpContact />}
       </section>
   );
 }
+
 
