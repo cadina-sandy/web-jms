@@ -6,8 +6,9 @@ async function main(){
  const sql={query:(query,params=[])=>({query,params,then:(ok,fail)=>pg.query(query,params).then(r=>r.rows).then(ok,fail)}),transaction:queries=>pg.transaction(async tx=>{const out=[];for(const q of queries)out.push((await tx.query(q.query,q.params)).rows);return out})};
  process.env.MATRICULA_DATABASE_URL='postgresql://ficticio.invalid/test';process.env.VERCEL_ENV='development';process.env.MATRICULA_EXPORT_TOKEN='admin-ficticio';process.env.MATRICULA_VIEW_TOKEN='lector-ficticio';process.env.MATRICULA_SUPER_TOKEN='super-ficticio';
  const fields=load('lib/matricula/fields.ts'),target=load('lib/matricula/target.ts'),hs=load('lib/matricula/history-schema.ts');
- const db=load('lib/matricula/db.ts',{'server-only':{},'@neondatabase/serverless':{neon:()=>sql},'./target':target,'./fields':fields,'./history-schema':hs});
- const history=load('lib/matricula/history.ts',{'server-only':{},'./db':db,'./target':target,'./history-schema':hs});
+ const numbering=load('lib/matricula/numbering.ts',{'./target':target});
+ const db=load('lib/matricula/db.ts',{'server-only':{},'@neondatabase/serverless':{neon:()=>sql},'./target':target,'./fields':fields,'./history-schema':hs,'./numbering':numbering});
+ const history=load('lib/matricula/history.ts',{'server-only':{},'./db':db,'./target':target,'./history-schema':hs,'./numbering':numbering});
  const access=load('lib/matricula/access.ts',{'server-only':{}}),labels=load('lib/matricula/labels.ts',{'./fields':fields}),view=load('lib/matricula/view.ts',{'./fields':fields,'./labels':labels}),actions=load('lib/matricula/history-actions.ts');
  const deps={'@/lib/matricula/access':access,'@/lib/matricula/db':db,'@/lib/matricula/fields':fields,'@/lib/matricula/target':target,'@/lib/matricula/view':view,'@/lib/matricula/history':history,'@/lib/matricula/history-actions':actions,'@/lib/matricula/labels':labels,'@/lib/matricula/csv':load('lib/matricula/csv.ts'),'@/lib/matricula/selection':load('lib/matricula/selection.ts'),'@/lib/matricula/word':{enrollmentWord:async()=>Buffer.from('word-ficticio')}};
  const consult=load('app/api/matriculas/consultar/route.ts',deps).POST,exp=load('app/api/matriculas/exportar/route.ts',deps).POST,del=load('app/api/matriculas/eliminar/route.ts',deps).DELETE,admin=load('app/api/matriculas/historial/route.ts',deps);
@@ -21,10 +22,13 @@ async function main(){
  await pg.query(`INSERT INTO ${table} (id,nombres,curso) VALUES ($1,'Registro previo','1°A')`,[id2]);
  await history.ensureHistoryStorage();assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${table}`)).rows[0].n,1);
  assert.equal((await db.save(fixture,id)).created,true);assert.equal((await db.save(fixture,id)).created,false);
+ assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[id2])).rows[0].numero_ficha),'1');
+ assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[id])).rows[0].numero_ficha),'2');
  assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${ht} WHERE action='crear'`)).rows[0].n,1);
  await db.markAddressFound(id);await db.markReceiptSent(id);
  assert.equal((await consult(req({id}))).status,200);
- assert.equal((await exp(req({ids:[id],format:'csv'}))).status,200);
+ const csvResponse=await exp(req({ids:[id],format:'csv'}));assert.equal(csvResponse.status,200);assert.ok((await csvResponse.text()).includes('N° de ficha'));
+ assert.equal(String((await (await consult(req({id}))).json()).record.numero_ficha),'2');
  assert.equal((await exp(req({ids:[id],format:'docx'}))).status,200);
  assert.equal((await consult(req({ids:[id]}))).status,200);
  assert.equal((await del(req({id},'lector-ficticio'))).status,403);
@@ -41,7 +45,7 @@ async function main(){
  assert.equal((await admin.PATCH(req({id,action:'purge'},'super-ficticio'))).status,400);
  assert.equal((await admin.PATCH(req({id,action:'purge',confirmation:'ELIMINAR',confirmedId:id},'admin-ficticio'))).status,403);
  assert.equal((await admin.PATCH(req({id:id2,action:'purge',confirmation:'ELIMINAR',confirmedId:id2},'super-ficticio'))).status,409,'no se borra una ficha activa');
- assert.equal((await admin.PATCH(req({id,action:'restore'},'super-ficticio'))).status,200);assert.equal((await consult(req({id},'super-ficticio'))).status,200);
+ assert.equal((await admin.PATCH(req({id,action:'restore'},'super-ficticio'))).status,200);assert.equal((await consult(req({id},'super-ficticio'))).status,200);assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[id])).rows[0].numero_ficha),'2');
  await del(req({id}));
  // Any audit failure must roll back the data change, including the hard delete.
  await pg.exec(`ALTER TABLE ${ht} ADD CONSTRAINT test_fail_purge CHECK (action <> 'borrar_definitivo')`);
@@ -52,9 +56,10 @@ async function main(){
  assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${table} WHERE id=$1`,[id])).rows[0].n,0);
  assert.equal((await admin.PATCH(req({id,action:'purge',confirmation:'ELIMINAR',confirmedId:id},'super-ficticio'))).status,409);
  assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${table} WHERE id=$1`,[id2])).rows[0].n,1);
- const all=await (await admin.POST(req({mode:'history',id},'super-ficticio'))).json();assert.ok(all.events.some(x=>x.action==='borrar_definitivo'));assert.ok(all.events.some(x=>x.action==='restaurar'));assert.ok(all.events.some(x=>x.action==='preparar_impresion'));
+ const all=await (await admin.POST(req({mode:'history',id},'super-ficticio'))).json();assert.ok(all.events.some(x=>x.action==='borrar_definitivo'));assert.equal(all.events.find(x=>x.action==='borrar_definitivo').details.numbers[0],'2');assert.ok(all.events.some(x=>x.action==='restaurar'));assert.ok(all.events.some(x=>x.action==='preparar_impresion'));
  assert.equal((await admin.POST(req({mode:'csv'},'super-ficticio'))).status,200);
  assert.equal((await admin.POST(req({mode:'history',from:'2026-02-31'},'super-ficticio'))).status,400);
+ const nextId='33333333-3333-4333-8333-333333333333';await db.save(fixture,nextId);assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[nextId])).rows[0].numero_ficha),'3','reintentos y borrados no reutilizan números');
  process.env.VERCEL_ENV='preview';process.env.VERCEL_GIT_COMMIT_REF='qa-audit';await history.ensureHistoryStorage();assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${hs.historyTable(target.databaseSchema())}`)).rows[0].n,0);
  await pg.close();console.log('PASS PostgreSQL: migración conserva fichas, creación idempotente, acceso exclusivo, papelera oculta en lectura/CSV/impresión, restauración, confirmación, borrado atómico y rollback si falla historial, exportación y aislamiento Preview.');
 }

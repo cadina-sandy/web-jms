@@ -4,7 +4,7 @@ import {
   BorderStyle, Document, HeadingLevel, Packer, Paragraph, SectionType,
   Table, TableCell, TableLayoutType, TableRow, TextRun, WidthType,
 } from 'docx';
-import { enrollmentDate, enrollmentName, enrollmentSections, type EnrollmentRecord } from './view';
+import { enrollmentDate, enrollmentNumber, enrollmentName, enrollmentSections, type EnrollmentRecord } from './view';
 
 const pageWidth = 12240;
 const pageHeight = 15840;
@@ -99,6 +99,7 @@ export async function enrollmentWord(records: EnrollmentRecord[]) {
           text('Fecha de matrícula ', 'label'), text(enrollmentDate(record.fechaMatricula ?? '')),
           text('   Curso 2027 ', 'label'), text(record.curso ?? ''),
         ] }),
+        new Paragraph({ spacing: { after: 30 }, keepNext: true, children: [text('N° de ficha ', 'label'), text(enrollmentNumber(record))] }),
         new Paragraph({ spacing: { after: 130 }, keepNext: true, children: [text('Comprobante ', 'label'), text(record.id)] }),
         ...enrollmentSections(record).flatMap(section => [
           sectionTable(section.title, section.entries),

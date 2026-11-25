@@ -2,6 +2,7 @@ import 'server-only';
 import { neon } from '@neondatabase/serverless';
 import { databaseSchema, tableName } from './target';
 import { fields, type Answers } from './fields';
+import { enrollmentNumberingSql } from './numbering';
 import { historySchema, historyTable } from './history-schema';
 import type { EnrollmentReceipt } from './receipt';
 
@@ -30,8 +31,9 @@ export async function save(answers: Answers, id: string) {
     sql.query(`CREATE SCHEMA IF NOT EXISTS ${quote(target)}`),
     sql.query(schema(target)),
     sql.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS deleted_at timestamptz, ADD COLUMN IF NOT EXISTS deleted_by text, ADD COLUMN IF NOT EXISTS receipt_sent_at timestamptz, ADD COLUMN IF NOT EXISTS receipt_attempted_at timestamptz, ${fields.map(field => `ADD COLUMN IF NOT EXISTS ${quote(field)} text NOT NULL DEFAULT ''`).join(', ')}`),
+    ...enrollmentNumberingSql(target).map(statement => sql.query(statement)),
     sql.query(historySchema(target)),
-    sql.query(`WITH inserted AS (INSERT INTO ${table} (id, ${fields.map(quote).join(',')}) VALUES (${values.map((_, i) => `$${i + 1}`).join(',')}) ON CONFLICT (id) DO NOTHING RETURNING id), logged AS (INSERT INTO ${historyTable(target)} (action,actor,record_ids) SELECT 'crear','public',ARRAY[id] FROM inserted) SELECT id FROM inserted`, values),
+    sql.query(`WITH inserted AS (INSERT INTO ${table} (id, ${fields.map(quote).join(',')}) SELECT ${values.map((_, i) => `$${i + 1}`).join(',')} WHERE NOT EXISTS (SELECT 1 FROM ${table} WHERE id=$1) ON CONFLICT (id) DO NOTHING RETURNING id,numero_ficha), logged AS (INSERT INTO ${historyTable(target)} (action,actor,record_ids,details) SELECT 'crear','public',ARRAY[id],jsonb_build_object('numbers',jsonb_build_array(numero_ficha::text)) FROM inserted) SELECT id FROM inserted`, values),
     sql.query(`SELECT
       CASE WHEN "apoderadoCorreoUsuario" <> '' AND "apoderadoCorreoDominio" <> ''
         THEN "apoderadoCorreoUsuario" || '@' || CASE WHEN "apoderadoCorreoDominio" = 'otra'
@@ -43,21 +45,21 @@ export async function save(answers: Answers, id: string) {
       created_at > now() - interval '23 hours' AS "retryAllowed"
       FROM ${table} WHERE id = $1`, [id]),
   ]);
-  const row = result[6][0] as (EnrollmentReceipt & { comprobacionDireccion: string }) | undefined;
+  const row = result[result.length - 1][0] as (EnrollmentReceipt & { comprobacionDireccion: string }) | undefined;
   if (!row) throw new Error('Ficha guardada no encontrada');
-  return { id, created: result[5].length > 0, receipt: row };
+  return { id, created: result[result.length - 2].length > 0, receipt: row };
 }
 
 export async function markAddressFound(id: string) {
   await getSql().query(
-    `WITH changed AS (UPDATE ${tableName(databaseSchema())} SET "comprobacionDireccion" = $2 WHERE id = $1 RETURNING id) INSERT INTO ${historyTable(databaseSchema())} (action,actor,record_ids) SELECT 'direccion_verificada','system',ARRAY[id] FROM changed`,
+    `WITH changed AS (UPDATE ${tableName(databaseSchema())} SET "comprobacionDireccion" = $2 WHERE id = $1 RETURNING id,numero_ficha) INSERT INTO ${historyTable(databaseSchema())} (action,actor,record_ids,details) SELECT 'direccion_verificada','system',ARRAY[id],jsonb_build_object('numbers',jsonb_build_array(numero_ficha::text)) FROM changed`,
     [id, 'Dirección encontrada'],
   );
 }
 
 export async function markReceiptSent(id: string) {
   await getSql().query(
-    `WITH changed AS (UPDATE ${tableName(databaseSchema())} SET receipt_sent_at = now() WHERE id = $1 AND receipt_sent_at IS NULL RETURNING id) INSERT INTO ${historyTable(databaseSchema())} (action,actor,record_ids) SELECT 'comprobante_enviado','system',ARRAY[id] FROM changed`,
+    `WITH changed AS (UPDATE ${tableName(databaseSchema())} SET receipt_sent_at = now() WHERE id = $1 AND receipt_sent_at IS NULL RETURNING id,numero_ficha) INSERT INTO ${historyTable(databaseSchema())} (action,actor,record_ids,details) SELECT 'comprobante_enviado','system',ARRAY[id],jsonb_build_object('numbers',jsonb_build_array(numero_ficha::text)) FROM changed`,
     [id],
   );
 }

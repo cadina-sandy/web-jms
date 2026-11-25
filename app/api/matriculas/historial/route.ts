@@ -20,13 +20,13 @@ export async function POST(request: Request) {
     await ensureHistoryStorage();
     const sql = getSql(); const table = tableName(databaseSchema());
     if (mode === 'record') {
-      const [record] = await sql.query(`SELECT ${['id', ...fields].map(readEnrollmentColumn).join(',')}, deleted_at, deleted_by FROM ${table} AS enrollment WHERE id=$1 AND deleted_at IS NOT NULL`, [id]);
+      const [record] = await sql.query(`SELECT ${['id', 'numero_ficha', ...fields].map(readEnrollmentColumn).join(',')}, deleted_at, deleted_by FROM ${table} AS enrollment WHERE id=$1 AND deleted_at IS NOT NULL`, [id]);
       if (!record) return Response.json({ error: 'La ficha ya no está en la papelera.' }, { status: 404, headers });
       await recordHistory('ver_papelera', 'super', [id]);
       return Response.json({ record: { ...record, curso: enrollmentLevel(record.curso) } }, { headers });
     }
     if (mode === 'trash') {
-      const rows = await sql.query(`SELECT id,nombres,"apellidoPaterno","apellidoMaterno",curso,deleted_at,deleted_by FROM ${table} WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC,id LIMIT 26 OFFSET $1`, [offset]);
+      const rows = await sql.query(`SELECT id,numero_ficha,nombres,"apellidoPaterno","apellidoMaterno",curso,deleted_at,deleted_by FROM ${table} WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC,id LIMIT 26 OFFSET $1`, [offset]);
       return Response.json({ records: rows.slice(0,25).map(row => ({ ...row, curso: enrollmentLevel(row.curso) })), hasMore: rows.length > 25, offset }, { headers });
     }
     const rows = await sql.query(`SELECT event_id::text,occurred_at,action,actor,record_ids,details FROM ${historyTable(databaseSchema())}
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       ORDER BY occurred_at DESC,event_id DESC LIMIT $5 OFFSET $6`, [from || null, to || null, action, id || null, mode === 'csv' ? 10001 : 51, mode === 'csv' ? 0 : offset]);
     if (mode === 'csv') {
       if (rows.length > 10000) return Response.json({ error: 'Más de 10000 eventos. Acota el rango de fechas.' }, { status: 413, headers });
-      const output = rows.map(row => ({ ...row, occurred_at: new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'short', timeStyle: 'medium' }).format(new Date(row.occurred_at)), action: historyActions[row.action as HistoryAction] ?? row.action, actor: historyActors[String(row.actor)] ?? row.actor, record_ids: (row.record_ids as string[]).join(' | '), details: [row.details?.count != null ? `Cantidad: ${row.details.count}` : '', row.details?.course ? `Curso: ${row.details.course}` : ''].filter(Boolean).join(' · ') }));
+      const output = rows.map(row => ({ ...row, occurred_at: new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'short', timeStyle: 'medium' }).format(new Date(row.occurred_at)), action: historyActions[row.action as HistoryAction] ?? row.action, actor: historyActors[String(row.actor)] ?? row.actor, record_ids: (row.record_ids as string[]).join(' | '), details: [Array.isArray(row.details?.numbers) && row.details.numbers.length ? `Fichas: ${row.details.numbers.join(', ')}` : '', row.details?.count != null ? `Cantidad: ${row.details.count}` : '', row.details?.course ? `Curso: ${row.details.course}` : ''].filter(Boolean).join(' · ') }));
       await recordHistory('exportar_historial', 'super', [], { count: rows.length });
       return new Response(csv(['event_id','occurred_at','action','actor','record_ids','details'], output, { event_id: 'Evento', occurred_at: 'Fecha y hora', action: 'Acción', actor: 'Perfil de acceso', record_ids: 'Comprobantes', details: 'Detalles' }), { headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="historial-matriculas.csv"' } });
     }

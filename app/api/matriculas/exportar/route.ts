@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   if (format === 'docx' && ids === undefined) {
     return Response.json({ error: 'Selecciona al menos una ficha para descargar en Word.' }, { status: 400 });
   }
-  const allowed = [...fields, 'id', 'created_at'];
+  const allowed = ['numero_ficha', ...fields, 'id', 'created_at'];
   const columns: unknown = format === 'docx' || body?.columns === undefined ? allowed : body.columns;
   const course = body?.course;
   if (course != null && (typeof course !== 'string' || !enrollmentCourseVariants(course).length)) {
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No hay matrículas para la selección.' }, { status: 404 });
     }
     await recordHistory('exportar_csv', staffRole(request)!, rows.map(row => String(row.id)), { count: rows.length, course: course ?? null });
-    return new Response(csv(exportedColumns, rows.map(row => ({ ...row, curso: enrollmentLevel(row.curso) })), labels), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="matriculas-2027${courseSuffix}.csv"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
+    return new Response(csv(exportedColumns, rows.map(row => ({ ...row, curso: enrollmentLevel(row.curso) })), { ...labels, numero_ficha: 'N° de ficha' }), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="matriculas-2027${courseSuffix}.csv"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
   } catch { return Response.json({ error: 'No se pudo exportar. Verifica que exista una matrícula guardada.' }, { status: 503 }); }
 }
 

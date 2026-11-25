@@ -2,6 +2,7 @@ import 'server-only';
 import { getSql, quote, schema } from './db';
 import { databaseSchema, tableName } from './target';
 import { historySchema, historyTable } from './history-schema';
+import { enrollmentNumberingSql } from './numbering';
 import type { HistoryAction } from './history-actions';
 export { historyTable } from './history-schema';
 const ready = new Map<string, Promise<void>>();
@@ -16,6 +17,7 @@ export async function ensureHistoryStorage() {
         sql.query(`CREATE SCHEMA IF NOT EXISTS ${quote(target)}`),
         sql.query(schema(target)),
         sql.query(`ALTER TABLE ${tableName(target)} ADD COLUMN IF NOT EXISTS deleted_at timestamptz, ADD COLUMN IF NOT EXISTS deleted_by text`),
+        ...enrollmentNumberingSql(target).map(statement => sql.query(statement)),
         sql.query(historySchema(target)),
         sql.query(`CREATE INDEX IF NOT EXISTS matriculas_2027_history_date_idx ON ${historyTable(target)} (occurred_at DESC, event_id DESC)`),
       ]);
@@ -26,7 +28,7 @@ export async function ensureHistoryStorage() {
 }
 export async function recordHistory(action: HistoryAction, actor: string, ids: string[] = [], details: Record<string, unknown> = {}) {
   await ensureHistoryStorage();
-  await getSql().query(`INSERT INTO ${historyTable(databaseSchema())} (action, actor, record_ids, details) VALUES ($1,$2,$3::uuid[],$4::jsonb)`, [action, actor, ids, JSON.stringify(details)]);
+  await getSql().query(`INSERT INTO ${historyTable(databaseSchema())} (action, actor, record_ids, details) VALUES ($1,$2,$3::uuid[],$4::jsonb || jsonb_build_object('numbers',COALESCE((SELECT jsonb_agg(numero_ficha::text ORDER BY numero_ficha) FROM ${tableName(databaseSchema())} WHERE id=ANY($3::uuid[])), '[]'::jsonb)))`, [action, actor, ids, JSON.stringify(details)]);
 }
 
 /** The row change and its history event commit together; failed logging rolls back the change. */
@@ -34,14 +36,14 @@ export async function changeEnrollmentState(id: string, actor: string, action: '
   await ensureHistoryStorage();
   const table = tableName(databaseSchema());
   const change = action === 'enviar_papelera'
-    ? `UPDATE ${table} SET deleted_at=now(), deleted_by=$2 WHERE id=$1 AND deleted_at IS NULL RETURNING id`
+    ? `UPDATE ${table} SET deleted_at=now(), deleted_by=$2 WHERE id=$1 AND deleted_at IS NULL RETURNING id,numero_ficha`
     : action === 'restaurar'
-      ? `UPDATE ${table} SET deleted_at=NULL, deleted_by=NULL WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id`
-      : `DELETE FROM ${table} WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id`;
+      ? `UPDATE ${table} SET deleted_at=NULL, deleted_by=NULL WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id,numero_ficha`
+      : `DELETE FROM ${table} WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id,numero_ficha`;
   // Keep $2 bound for all variants, including permanent delete.
   const withActor = action === 'enviar_papelera' ? change : change.replace('WHERE id=$1', 'WHERE $2::text IS NOT NULL AND id=$1');
   return getSql().query(`WITH changed AS (${withActor}), logged AS (
-    INSERT INTO ${historyTable(databaseSchema())} (action, actor, record_ids)
-    SELECT $3,$2,ARRAY[id] FROM changed RETURNING event_id
+    INSERT INTO ${historyTable(databaseSchema())} (action, actor, record_ids, details)
+    SELECT $3,$2,ARRAY[id],jsonb_build_object('numbers',jsonb_build_array(numero_ficha::text)) FROM changed RETURNING event_id
   ) SELECT id FROM changed WHERE EXISTS (SELECT 1 FROM logged)`, [id, actor, action]);
 }

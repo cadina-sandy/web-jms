@@ -2,8 +2,8 @@ import { fields, householdOptions, type Answers, type Field } from './fields';
 import { labels } from './labels';
 
 export const pageSize = 25;
-export type EnrollmentSummary = Pick<Answers, 'fechaMatricula' | 'curso' | 'nombres' | 'apellidoPaterno' | 'apellidoMaterno'> & { id: string };
-export type EnrollmentRecord = Answers & { id: string };
+export type EnrollmentSummary = Pick<Answers, 'fechaMatricula' | 'curso' | 'nombres' | 'apellidoPaterno' | 'apellidoMaterno'> & { id: string; numero_ficha?: string | number };
+export type EnrollmentRecord = Answers & { id: string; numero_ficha?: string | number };
 
 const sectionStarts = [
   ['nombres', 'Datos del estudiante'],
@@ -40,6 +40,11 @@ const friendlyLabels: Partial<Record<Field, string>> = {
   funcionarioMatriculaOtro: 'Otro nombre', autorizacionImagenFirma: 'Firma',
 };
 
+export function enrollmentNumber(record: { numero_ficha?: string | number }) {
+  const number = String(record.numero_ficha ?? '');
+  return /^[1-9]\d*$/.test(number) ? number : '—';
+}
+
 export function enrollmentName(record: EnrollmentSummary) {
   return [record.nombres, record.apellidoPaterno, record.apellidoMaterno]
     .filter(value => value?.trim() && !/^no[ -]aplica$/i.test(value.trim())).join(' ') || 'Estudiante';
@@ -75,3 +80,4 @@ export function enrollmentSections(record: EnrollmentRecord) {
     return { title, entries };
   }).filter(section => section.entries.length > 0);
 }
+

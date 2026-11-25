@@ -9,7 +9,7 @@ import { ensureHistoryStorage, recordHistory } from '@/lib/matricula/history';
 export const runtime = 'nodejs';
 
 const privateHeaders = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
-const summaryColumns = ['id', 'fechaMatricula', 'curso', 'nombres', 'apellidoPaterno', 'apellidoMaterno'];
+const summaryColumns = ['id', 'numero_ficha', 'fechaMatricula', 'curso', 'nombres', 'apellidoPaterno', 'apellidoMaterno'];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
@@ -47,14 +47,14 @@ export async function POST(request: Request) {
     const sql = getSql();
     const table = tableName(databaseSchema());
     if (typeof id === 'string') {
-      const [record] = await sql.query(`SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = $1 AND deleted_at IS NULL`, [id]);
+      const [record] = await sql.query(`SELECT ${['id', 'numero_ficha', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = $1 AND deleted_at IS NULL`, [id]);
       if (!record) return Response.json({ error: 'No se encontró esa ficha.' }, { status: 404, headers });
       await recordHistory('ver', role!, [id]);
       return Response.json({ record: { ...record, curso: enrollmentLevel(record.curso) } }, { headers });
     }
     if (Array.isArray(ids)) {
       const records = await sql.query(
-        `SELECT ${['id', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL ORDER BY array_position($1::uuid[], id)`,
+        `SELECT ${['id', 'numero_ficha', ...fields].map(readEnrollmentColumn).join(', ')} FROM ${table} AS enrollment WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL ORDER BY array_position($1::uuid[], id)`,
         [ids],
       );
       if (records.length !== ids.length) return Response.json({ error: 'Una ficha seleccionada ya no está disponible. Actualiza el listado.' }, { status: 409, headers });

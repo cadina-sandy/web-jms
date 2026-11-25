@@ -3,7 +3,7 @@
 import { Caveat } from 'next/font/google';
 import { useEffect, useRef, useState, type FormEvent, type Ref } from 'react';
 import { enrollmentCourses } from '@/lib/matricula/fields';
-import { enrollmentDate, enrollmentName, enrollmentSections, pageSize, type EnrollmentRecord, type EnrollmentSummary } from '@/lib/matricula/view';
+import { enrollmentDate, enrollmentNumber, enrollmentName, enrollmentSections, pageSize, type EnrollmentRecord, type EnrollmentSummary } from '@/lib/matricula/view';
 
 const creatorFont = Caveat({ subsets: ['latin'], weight: '400', display: 'swap' });
 
@@ -278,7 +278,7 @@ export default function ExportMatriculas() {
                     <input type="checkbox" checked={selectedIds.includes(row.id)} disabled={!canManage || !!busy}
                       aria-label={`Seleccionar ficha de ${enrollmentName(row)}`}
                       onChange={event => selectRecord(row.id, event.target.checked)} />
-                    <span><strong>{enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></span>
+                    <span><strong>N° {enrollmentNumber(row)} · {enrollmentName(row)}</strong><span>{row.curso}{row.fechaMatricula && ` · ${enrollmentDate(row.fechaMatricula)}`}</span></span>
                   </label>
                   <div className="enrollment-row-actions">
                     <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
@@ -325,6 +325,7 @@ function EnrollmentDetails({ record, headingRef, onBack }: { record: EnrollmentR
               <dl className="enrollment-record-meta">
                 <div><dt>Fecha de matrícula</dt><dd>{enrollmentDate(record.fechaMatricula ?? '')}</dd></div>
                 <div><dt>Curso 2027</dt><dd>{record.curso}</dd></div>
+                <div><dt>N° de ficha</dt><dd>{enrollmentNumber(record)}</dd></div>
                 <div><dt>Comprobante</dt><dd>{record.id}</dd></div>
               </dl>
             </div>

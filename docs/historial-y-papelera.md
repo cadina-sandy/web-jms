@@ -24,3 +24,7 @@ No hay modificación de filas reales ni pruebas de borrado sobre producción dur
 ## Comprobación
 
 Ejecutar `npm test` y `npx tsc --noEmit`. `tests/matricula-audit.test.ts` ejecuta las rutas y SQL reales sobre una base local efímera: migración de una tabla anterior, creación idempotente, controles de rol, exclusión de papelera, restauración, confirmación, rollback por fallo de registro, exportación e aislamiento Preview.
+
+## Número estable de ficha
+
+`numero_ficha` es un número correlativo, único y no editable desde el formulario. La migración numera las fichas existentes por `created_at, id` sin cambiar sus comprobantes UUID; las nuevas usan una secuencia propia del esquema. La misma numeración aparece en listado, ficha, impresión, CSV, Word, papelera e historial. Filtrar, paginar y restaurar no cambia el número. El borrado definitivo no lo libera para reutilización; pueden quedar saltos por borrados o transacciones canceladas. Las pruebas comprueban también este comportamiento.
