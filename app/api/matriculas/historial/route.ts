@@ -12,8 +12,8 @@ const validDate = (value: unknown) => value === '' || value == null || (typeof v
 
 export async function POST(request: Request) {
   const denied = authorizeStaff(request, 'super'); if (denied) return denied;
-  let body;
-  try { body = await request.json(); if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error(); } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400, headers }); }
+  let body: { mode?: string; offset?: number; from?: string; to?: string; action?: string; id?: string };
+  try { body = await request.json() as typeof body; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error(); } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400, headers }); }
   const { mode = 'history', offset = 0, from = '', to = '', action = '', id = '' } = body;
   if (!['history', 'csv', 'trash', 'record'].includes(mode) || !Number.isSafeInteger(offset) || offset < 0 || !validDate(from) || !validDate(to) || (from && to && from > to) || typeof action !== 'string' || (action && !Object.hasOwn(historyActions, action)) || typeof id !== 'string' || (id && !uuid.test(id)) || (mode === 'record' && !id)) return Response.json({ error: 'Revisa los filtros.' }, { status: 400, headers });
   try {
@@ -46,9 +46,9 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const denied = authorizeStaff(request, 'super'); if (denied) return denied;
-  let body;
-  try { body = await request.json(); } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400, headers }); }
-  if (!body || typeof body.id !== 'string' || !uuid.test(body.id) || !['restore','purge'].includes(body.action)) return Response.json({ error: 'Revisa la ficha y la acción.' }, { status: 400, headers });
+  let body: { id?: unknown; action?: unknown; confirmation?: unknown; confirmedId?: unknown } | null;
+  try { body = await request.json() as typeof body; } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400, headers }); }
+  if (!body || typeof body.id !== 'string' || !uuid.test(body.id) || (typeof body.action !== 'string' || !['restore','purge'].includes(body.action))) return Response.json({ error: 'Revisa la ficha y la acción.' }, { status: 400, headers });
   if (body.action === 'purge' && (body.confirmation !== 'ELIMINAR' || body.confirmedId !== body.id)) return Response.json({ error: 'Confirma explícitamente el borrado de esta ficha.' }, { status: 400, headers });
   try {
     const rows = await changeEnrollmentState(body.id, 'super', body.action === 'restore' ? 'restaurar' : 'borrar_definitivo');

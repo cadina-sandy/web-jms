@@ -14,14 +14,14 @@ export default function SuperAdmin() {
   function logout() { setToken('');setAuthorized(false);setEvents([]);setTrash([]);setRecord(null);setMessage('');setOffset(0);setMore(false); }
   async function request(body: object, method='POST') {
     const response = await fetch('/api/matriculas/historial/', { method, headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(body),cache:'no-store' });
-    if (!response.ok) { const error=await response.json().catch(()=>null); if(response.status===401||response.status===403)logout(); throw new Error(error?.error||'No se pudo completar la solicitud.'); }
+    if (!response.ok) { const error=await response.json().catch(()=>null) as {error?:string}|null; if(response.status===401||response.status===403)logout(); throw new Error(error?.error||'No se pudo completar la solicitud.'); }
     return response;
   }
   async function load(nextTab=tab,nextOffset=0) {
     if(busy||!token)return;setBusy(true);setMessage('');setRecord(null);
-    try {const response=await request({mode:nextTab,offset:nextOffset,...(nextTab==='history'?{from,to,action,id}:{})});const result=await response.json();setAuthorized(true);setTab(nextTab);setOffset(nextOffset);setMore(result.hasMore);setEvents(result.events??[]);setTrash(result.records??[]);}catch(error){setMessage(error instanceof Error?error.message:'No se pudo consultar.');}finally{setBusy(false);}
+    try {const response=await request({mode:nextTab,offset:nextOffset,...(nextTab==='history'?{from,to,action,id}:{})});const result=await response.json() as {events?:AuditEvent[];records?:TrashRecord[];hasMore:boolean};setAuthorized(true);setTab(nextTab);setOffset(nextOffset);setMore(result.hasMore);setEvents(result.events??[]);setTrash(result.records??[]);}catch(error){setMessage(error instanceof Error?error.message:'No se pudo consultar.');}finally{setBusy(false);}
   }
-  async function inspect(row:TrashRecord) {if(busy)return;setBusy(true);setMessage('');try{const response=await request({mode:'record',id:row.id});setRecord((await response.json()).record);}catch(error){setMessage((error as Error).message);}finally{setBusy(false);}}
+  async function inspect(row:TrashRecord) {if(busy)return;setBusy(true);setMessage('');try{const response=await request({mode:'record',id:row.id});setRecord((await response.json() as {record:TrashRecord}).record);}catch(error){setMessage((error as Error).message);}finally{setBusy(false);}}
   async function change(row:TrashRecord,kind:'restore'|'purge') {
     if(busy)return;
     if(kind==='purge' && window.prompt(`Borrar definitivamente la ficha de ${enrollmentName(row)} (${row.id}).\nEsta acción no se puede deshacer. Escribe ELIMINAR para confirmar.`)!=='ELIMINAR')return;
