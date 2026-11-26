@@ -1,6 +1,8 @@
 'use client';
 
 import HelpContact from './HelpContact';
+import { trackEnrollmentClick } from '@/lib/matricula/track-click';
+import type { EnrollmentClickEvent } from '@/lib/matricula/click-events';
 
 import { enrollmentCourses } from '@/lib/matricula/fields';
 import { fromForm, validate } from '@/lib/matricula/validation';
@@ -853,6 +855,20 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
     }
   }, [open]);
 
+  function openEnrollment(event: EnrollmentClickEvent) {
+    trackEnrollmentClick(event);
+    if (!open && enrollmentDate === null) {
+      const today = enrollmentDateFormat.format(new Date());
+      setEnrollmentDate(today);
+      setConsentDate(today);
+    }
+    setOpen(true);
+    if (open) {
+      formHeading.current?.focus({ preventScroll: true });
+      formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   return (
       <section className="section reservation-steps" id="pasos-matricula" aria-labelledby="titulo-pasos-matricula">
         <div className="shell">
@@ -865,18 +881,7 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
                 className="reservation-form-trigger"
                 aria-expanded={open}
                 aria-controls="formulario-matricula"
-                onClick={() => {
-                  if (!open && enrollmentDate === null) {
-                    const today = enrollmentDateFormat.format(new Date());
-                    setEnrollmentDate(today);
-                    setConsentDate(today);
-                  }
-                  setOpen(true);
-                  if (open) {
-                    formHeading.current?.focus({ preventScroll: true });
-                    formHeading.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
+                onClick={() => openEnrollment('click_pre_matricula_2027')}
               ><strong>PRE-MATRÍCULA 2027 AQUÍ</strong></button></p>
             </li>
             <li>
@@ -884,6 +889,9 @@ function EnrollmentForm({ initiallyOpen, checksAddresses, onNewEnrollment }: { i
               <p>Después de completar el formulario <strong>Acércate al establecimiento</strong> a firmar el consentimiento desde el <strong>2 de diciembre.</strong></p>
             </li>
           </ol>
+          <div className="reservation-add-student">
+            <button type="button" className="reservation-student-button" aria-expanded={open} aria-controls="formulario-matricula" onClick={() => openEnrollment('click_inscribir_alumno')}>INSCRIBIR ALUMNO</button>
+          </div>
 
           <section className="reservation-form" id="formulario-matricula" aria-labelledby="titulo-formulario" hidden={!open}>
             <h3 id="titulo-formulario" ref={formHeading} tabIndex={-1}>Formulario de Pre-Matrícula 2027</h3>

@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 const {PGlite}=require('@electric-sql/pglite');
-function load(path,deps={}){const module={exports:{}};const js=ts.transpileModule(fs.readFileSync(require('node:path').join(__dirname, '../..', path),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;vm.runInNewContext(js,{module,exports:module.exports,process,URL,Request,Response,Date,Map,Set,Uint8Array,console,require:n=>deps[n]??require(n)});return module.exports;}
+function load(path,deps={}){const module={exports:{}};const js=ts.transpileModule(fs.readFileSync(require('node:path').join(__dirname, '../..', path),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;vm.runInNewContext(js,{module,exports:module.exports,process,URL,Request,Response,Date,Map,Set,Uint8Array,TextDecoder,console,require:n=>deps[n]??require(n)});return module.exports;}
 async function main(){
  const pg=new PGlite();
  const sql={query:(query,params=[])=>({query,params,then:(ok,fail)=>pg.query(query,params).then(r=>r.rows).then(ok,fail)}),transaction:queries=>pg.transaction(async tx=>{const out=[];for(const q of queries)out.push((await tx.query(q.query,q.params)).rows);return out})};
@@ -10,15 +10,35 @@ async function main(){
  const db=load('lib/matricula/db.ts',{'server-only':{},'@neondatabase/serverless':{neon:()=>sql},'./target':target,'./fields':fields,'./history-schema':hs,'./numbering':numbering});
  const history=load('lib/matricula/history.ts',{'server-only':{},'./db':db,'./target':target,'./history-schema':hs,'./numbering':numbering});
  const access=load('lib/matricula/access.ts',{'server-only':{}}),labels=load('lib/matricula/labels.ts',{'./fields':fields}),view=load('lib/matricula/view.ts',{'./fields':fields,'./labels':labels}),actions=load('lib/matricula/history-actions.ts');
- const deps={'@/lib/matricula/access':access,'@/lib/matricula/db':db,'@/lib/matricula/fields':fields,'@/lib/matricula/target':target,'@/lib/matricula/view':view,'@/lib/matricula/history':history,'@/lib/matricula/history-actions':actions,'@/lib/matricula/labels':labels,'@/lib/matricula/csv':load('lib/matricula/csv.ts'),'@/lib/matricula/selection':load('lib/matricula/selection.ts'),'@/lib/matricula/word':{enrollmentWord:async()=>Buffer.from('word-ficticio')}};
+ const clicks=load('lib/matricula/click-stats.ts',{'server-only':{},'./db':db,'./target':target,'./click-events':load('lib/matricula/click-events.ts')});
+ const deps={'@/lib/matricula/click-stats':clicks,'@/lib/matricula/click-events':load('lib/matricula/click-events.ts'),'@/lib/matricula/access':access,'@/lib/matricula/db':db,'@/lib/matricula/fields':fields,'@/lib/matricula/target':target,'@/lib/matricula/view':view,'@/lib/matricula/history':history,'@/lib/matricula/history-actions':actions,'@/lib/matricula/labels':labels,'@/lib/matricula/csv':load('lib/matricula/csv.ts'),'@/lib/matricula/selection':load('lib/matricula/selection.ts'),'@/lib/matricula/word':{enrollmentWord:async()=>Buffer.from('word-ficticio')}};
  const consult=load('app/api/matriculas/consultar/route.ts',deps).POST,exp=load('app/api/matriculas/exportar/route.ts',deps).POST,del=load('app/api/matriculas/eliminar/route.ts',deps).DELETE,admin=load('app/api/matriculas/historial/route.ts',deps);
  const req=(body,token='admin-ficticio')=>new Request('https://colegio.invalid/api/',{method:'POST',headers:{origin:'https://colegio.invalid',authorization:'Bearer '+token,'content-type':'application/json'},body:JSON.stringify(body)});
+ const clickPost=load('app/api/matriculas/eventos/route.ts',deps).POST;
  const id='11111111-1111-4111-8111-111111111111',id2='22222222-2222-4222-8222-222222222222';
  const fixture=load('tests/fixture.ts').fixture;
  const table=target.tableName(target.databaseSchema()),ht=hs.historyTable(target.databaseSchema());
  assert.equal((await admin.POST(req({}))).status,403);assert.equal((await admin.POST(req({},'lector-ficticio'))).status,403);assert.equal((await admin.POST(req({},'incorrecta'))).status,401);
+ // Anonymous clicks never touch enrollment storage; repeats with the same request ID count once.
+ const clickBody={event:'click_inscribir_alumno',id};
+ assert.equal((await clickPost(req(clickBody))).status,204);
+ assert.equal((await clickPost(req(clickBody))).status,204);
+ assert.equal((await clickPost(req({event:'click_pre_matricula_2027',id:id2}))).status,204);
+ assert.equal((await clickPost(req({...clickBody,nombres:'dato que no debe guardarse'}))).status,400);
+ assert.equal((await clickPost(req({event:'evento_no_permitido',id}))).status,400);
+ assert.equal((await clickPost(new Request('https://colegio.invalid/api/',{method:'POST',headers:{origin:'https://otro.invalid','content-type':'application/json'},body:JSON.stringify(clickBody)}))).status,403);
+ assert.equal((await clickPost(req({event:'x'.repeat(600),id}))).status,413);
+ assert.equal((await admin.POST(req({mode:'clicks'},'lector-ficticio'))).status,403);
+ assert.equal((await admin.POST(req({mode:'clicks'},'admin-ficticio'))).status,403);
+ const stats=await (await admin.POST(req({mode:'clicks'},'super-ficticio'))).json();
+ assert.equal(stats.clicks.find(row=>row.event==='click_inscribir_alumno').count,1);
+ assert.equal(stats.clicks.find(row=>row.event==='click_pre_matricula_2027').count,1);
+ const ct=clicks.clickTable(target.databaseSchema());
+ await pg.query(`UPDATE ${ct} SET created_at='2026-11-26T02:30:00Z' WHERE event_id=$1`,[id]);
+ assert.equal((await clicks.enrollmentClickCounts('2026-11-25','2026-11-25')).find(row=>row.event==='click_inscribir_alumno').count,1,'Chile calendar date before midnight');
+ assert.equal((await clicks.enrollmentClickCounts('2026-11-26','2026-11-26')).find(row=>row.event==='click_inscribir_alumno').count,0);
  // Migrate an old-style table without deleting or copying its existing records.
- await pg.exec('CREATE SCHEMA matricula_development');await pg.exec(db.schema('matricula_development'));
+ await pg.exec('CREATE SCHEMA IF NOT EXISTS matricula_development');await pg.exec(db.schema('matricula_development'));
  await pg.query(`INSERT INTO ${table} (id,nombres,curso) VALUES ($1,'Registro previo','1°A')`,[id2]);
  await history.ensureHistoryStorage();assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${table}`)).rows[0].n,1);
  assert.equal((await db.save(fixture,id)).created,true);assert.equal((await db.save(fixture,id)).created,false);
@@ -60,7 +80,7 @@ async function main(){
  assert.equal((await admin.POST(req({mode:'csv'},'super-ficticio'))).status,200);
  assert.equal((await admin.POST(req({mode:'history',from:'2026-02-31'},'super-ficticio'))).status,400);
  const nextId='33333333-3333-4333-8333-333333333333';await db.save(fixture,nextId);assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[nextId])).rows[0].numero_ficha),'3','reintentos y borrados no reutilizan números');
- process.env.VERCEL_ENV='preview';process.env.VERCEL_GIT_COMMIT_REF='qa-audit';await history.ensureHistoryStorage();assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${hs.historyTable(target.databaseSchema())}`)).rows[0].n,0);
+ process.env.VERCEL_ENV='preview';process.env.VERCEL_GIT_COMMIT_REF='qa-audit';await history.ensureHistoryStorage();assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${hs.historyTable(target.databaseSchema())}`)).rows[0].n,0);assert.ok((await clicks.enrollmentClickCounts()).every(row=>row.count===0),'Preview counters isolated');
  await pg.close();console.log('PASS PostgreSQL: migración conserva fichas, creación idempotente, acceso exclusivo, papelera oculta en lectura/CSV/impresión, restauración, confirmación, borrado atómico y rollback si falla historial, exportación y aislamiento Preview.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1});

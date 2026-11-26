@@ -1,3 +1,4 @@
+import { enrollmentClickCounts } from '@/lib/matricula/click-stats';
 import { authorizeStaff } from '@/lib/matricula/access';
 import { ensureHistoryStorage, recordHistory, historyTable, changeEnrollmentState } from '@/lib/matricula/history';
 import { historyActions, historyActors, type HistoryAction } from '@/lib/matricula/history-actions';
@@ -15,8 +16,9 @@ export async function POST(request: Request) {
   let body: { mode?: string; offset?: number; from?: string; to?: string; action?: string; id?: string };
   try { body = await request.json() as typeof body; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error(); } catch { return Response.json({ error: 'Solicitud inválida.' }, { status: 400, headers }); }
   const { mode = 'history', offset = 0, from = '', to = '', action = '', id = '' } = body;
-  if (!['history', 'csv', 'trash', 'record'].includes(mode) || !Number.isSafeInteger(offset) || offset < 0 || !validDate(from) || !validDate(to) || (from && to && from > to) || typeof action !== 'string' || (action && !Object.hasOwn(historyActions, action)) || typeof id !== 'string' || (id && !uuid.test(id)) || (mode === 'record' && !id)) return Response.json({ error: 'Revisa los filtros.' }, { status: 400, headers });
+  if (!['history', 'csv', 'trash', 'record', 'clicks'].includes(mode) || !Number.isSafeInteger(offset) || offset < 0 || !validDate(from) || !validDate(to) || (from && to && from > to) || typeof action !== 'string' || (action && !Object.hasOwn(historyActions, action)) || typeof id !== 'string' || (id && !uuid.test(id)) || (mode === 'record' && !id)) return Response.json({ error: 'Revisa los filtros.' }, { status: 400, headers });
   try {
+    if (mode === 'clicks') return Response.json({ clicks: await enrollmentClickCounts(from, to) }, { headers });
     await ensureHistoryStorage();
     const sql = getSql(); const table = tableName(databaseSchema());
     if (mode === 'record') {

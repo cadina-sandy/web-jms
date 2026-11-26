@@ -1054,3 +1054,13 @@
 .super-admin button.super-danger{background:#a32937;color:white;border-color:#a32937}
 .super-admin button.super-danger:not(:disabled):hover{background:#82212c}
 @media(max-width:600px){.super-admin .super-filters{grid-template-columns:1fr}}
+
+/* Enrollment entry point shared with the existing step link. */
+.reservation-add-student { display:flex; justify-content:center; margin-top:28px; }
+.reservation-student-button { border:0; border-radius:6px; background:var(--yellow); color:var(--navy); padding:14px 28px; min-height:48px; max-width:100%; font:inherit; font-size:16px; font-weight:800; cursor:pointer; }
+.reservation-student-button:hover { background:#ffe46b; }
+.reservation-student-button:focus-visible { outline:3px solid var(--navy); outline-offset:4px; }
+.super-click-counts { margin:24px 0; padding:20px; border:1px solid #d3e0f1; border-radius:10px; background:#f5f9ff; }
+.super-click-counts dl { display:flex; flex-wrap:wrap; gap:24px 48px; margin:16px 0; }
+.super-click-counts dt { font-size:14px; font-weight:600; }
+.super-click-counts dd { margin:4px 0 0; font-size:28px; font-weight:800; }

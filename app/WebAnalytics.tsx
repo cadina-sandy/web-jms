@@ -8,8 +8,6 @@ function isPublicPage(pathname: string) {
 }
 
 function beforeSend(event: BeforeSendEvent) {
-  if (event.type !== 'pageview') return null;
-
   let url: URL;
   try {
     url = new URL(event.url);
@@ -18,6 +16,7 @@ function beforeSend(event: BeforeSendEvent) {
   }
 
   if (!isPublicPage(url.pathname)) return null;
+  if (event.type === 'event' && !/^\/reserva-matricula\/?$/.test(url.pathname)) return null;
 
   url.search = '';
   url.hash = '';
