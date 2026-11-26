@@ -1105,7 +1105,7 @@
   .reservation-form .field-error { font-size: .9375rem; line-height: 1.5; }
   .reservation-form [aria-invalid="true"] { border-color: #a71919; outline: 2px solid #a71919; outline-offset: 2px; }
   .reservation-steps a { text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
-  .reservation-steps :is(button,input,select,textarea,summary,[tabindex]):focus-visible,
+  .reservation-steps :is(button,input,select,textarea,summary,[tabindex]:not(h3)):focus-visible,
   .jms-help :is(button,input,textarea):focus-visible {
     outline: 3px solid #0c2258; outline-offset: 3px; box-shadow: 0 0 0 3px #fff;
   }
