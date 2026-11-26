@@ -1064,3 +1064,64 @@
 .super-click-counts dl { display:flex; flex-wrap:wrap; gap:24px 48px; margin:16px 0; }
 .super-click-counts dt { font-size:14px; font-weight:600; }
 .super-click-counts dd { margin:4px 0 0; font-size:28px; font-weight:800; }
+
+/* Mobile-only proposal. Desktop and print retain their existing presentation. */
+@media screen and (max-width: 680px) {
+  .reservation-steps { padding-top: 40px; padding-bottom: 48px; }
+  .reservation-steps :is(p, label, legend, summary) { line-height: 1.5; }
+  .reservation-steps > .shell > h2 { font-size: 1.875rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .reservation-step-list { gap: 24px; }
+  .reservation-step-list p { font-size: 1rem; }
+  .reservation-form-trigger { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; margin: 8px 0 0; padding: 10px 12px; max-width: 100%; text-align: center; white-space: normal; }
+  .reservation-student-button { min-height: 48px; font-size: 1rem; }
+  .reservation-form h3 { font-size: 1.625rem; line-height: 1.25; }
+  .reservation-form h4 { font-size: 1.25rem; line-height: 1.35; }
+  .reservation-form :is(label, legend) { font-size: 1rem; font-weight: 600; }
+  .reservation-form :is(input[type="text"],input[type="date"],input[type="tel"],input[type="email"],select,textarea) {
+    min-width: 0; max-width: 100%; min-height: 48px; height: auto;
+    padding: 12px; font-size: 1rem; line-height: 1.5;
+    border: 1px solid #66758a; border-radius: 4px; background: #fff; color: #101a33;
+  }
+  .reservation-form :is(input,select,textarea)::placeholder { color: #596579; opacity: 1; }
+  .reservation-form :is(input,select,textarea):disabled { background: #d4d9e2; border-color: #929bab; color: #4d5768; opacity: 1; }
+  .reservation-form .student-email-fields { grid-template-columns: 1fr; gap: 8px; }
+  .reservation-form .student-rut-fields { grid-template-columns: minmax(0,1fr); gap: 12px; align-items: start; }
+  .reservation-form .student-rut-fields > span { display: none; }
+  .reservation-form .guardian-phone-fields > span { min-height: 48px; font-size: 1rem; border-color: #66758a; }
+  .reservation-form fieldset:not(.enrollment-inputs) label:has(input[type="radio"]),
+  .reservation-form .student-household .household-options label {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px;
+    margin: 8px 0 0; padding: 10px 12px; border: 1px solid #66758a; border-radius: 4px; cursor: pointer;
+  }
+  .reservation-form :is(input[type="radio"],input[type="checkbox"]) { flex: 0 0 22px; width: 22px; height: 22px; margin: 0; accent-color: #0c2258; }
+  .reservation-form label:has(input:checked) { background: #eef4fc; }
+  .reservation-form .student-household summary { min-height: 48px; padding: 12px; font-size: 1rem; }
+  .reservation-form .student-household details { border-color: #66758a; }
+  .reservation-form .document-selection-hint { display: block; position: static; width: auto; max-width: 100%; margin-top: 8px; box-shadow: none; font-size: .875rem; line-height: 1.5; }
+  .reservation-form .add-authorized-person { min-height: 48px; max-width: 100%; font-size: 1rem; white-space: normal; }
+  .reservation-form .photo-consent select { width: 100%; max-width: 100%; }
+  .reservation-form .photo-consent-signature { grid-template-columns: 1fr; }
+  .reservation-form .save-enrollment { min-height: 52px; padding: 14px 18px; font-size: 1.125rem; line-height: 1.5; }
+  .reservation-form .field-error { font-size: .9375rem; line-height: 1.5; }
+  .reservation-form [aria-invalid="true"] { border-color: #a71919; outline: 2px solid #a71919; outline-offset: 2px; }
+  .reservation-steps a { text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+  .reservation-steps :is(button,input,select,textarea,summary,[tabindex]):focus-visible,
+  .jms-help :is(button,input,textarea):focus-visible {
+    outline: 3px solid #0c2258; outline-offset: 3px; box-shadow: 0 0 0 3px #fff;
+  }
+  .reservation-form :is(input,select,textarea,summary), .reservation-form h3 { scroll-margin-top: 110px; scroll-margin-bottom: 24px; }
+  body:has(#pasos-matricula) .menu-button { min-width: 48px; min-height: 48px; padding: 8px; }
+  body:has(#pasos-matricula) .menu-button:focus-visible { outline: 3px solid #0c2258; outline-offset: 2px; }
+  body:has(#pasos-matricula) .site-header nav { max-height: calc(100dvh - 100px); overflow-y: auto; overscroll-behavior: contain; }
+  body:has(#pasos-matricula) .site-header nav a { min-height: 48px; font-size: 1rem; }
+  .jms-help-panel { width: min(352px,calc(100vw - 32px)); padding: 18px; }
+  .jms-help :is(input,textarea) { min-height: 48px; height: auto; border-color: #66758a; font-size: 1rem; }
+  .jms-help :is(.jms-help-description,.jms-help-success p) { font-size: 1rem; }
+  .jms-help :is(.jms-help-count,.jms-help-note) { font-size: .875rem; }
+  .jms-help :is(.jms-help-send,.jms-help-close) { min-width: 48px; min-height: 48px; }
+  .jms-help .jms-help-honeypot input { min-height: 0; }
+}
+@media screen and (max-width: 680px) and (prefers-reduced-motion: reduce) {
+  html:has(#pasos-matricula) { scroll-behavior: auto; }
+  .reservation-steps *, .jms-help * { transition: none !important; animation: none !important; }
+}
