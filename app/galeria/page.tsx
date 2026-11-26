@@ -6,8 +6,21 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'Halloween', 'Encuentro teatral', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'visita a bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const categories = ['Todas', 'Premios de asistencia', 'Halloween', 'Encuentro teatral', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'visita a bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
 const photos: { src: string; category: string; alt: string; video?: string }[] = [
+{"src": "/gallery/premios-asistencia/20261008_095620.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 1"},
+{"src": "/gallery/premios-asistencia/20261008_095644-poster.jpg", "video": "/gallery/premios-asistencia/20261008_095644.mp4", "category": "Premios de asistencia", "alt": "Premios de asistencia — video de la premiación"},
+{"src": "/gallery/premios-asistencia/20261008_095802.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 2"},
+{"src": "/gallery/premios-asistencia/20261008_095807.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 3"},
+{"src": "/gallery/premios-asistencia/20261008_095811.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 4"},
+{"src": "/gallery/premios-asistencia/20261008_095822.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 5"},
+{"src": "/gallery/premios-asistencia/20261008_095824.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 6"},
+{"src": "/gallery/premios-asistencia/20261008_095829.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 7"},
+{"src": "/gallery/premios-asistencia/20261008_095830.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 8"},
+{"src": "/gallery/premios-asistencia/20261008_095957.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 9"},
+{"src": "/gallery/premios-asistencia/20261008_100000.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 10"},
+{"src": "/gallery/premios-asistencia/20261008_100002.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 11"},
+{"src": "/gallery/premios-asistencia/20261008_100003.jpg", "category": "Premios de asistencia", "alt": "Premios de asistencia — fotografía 12"},
 {"src": "/gallery/halloween/20261030_074055.jpg", "category": "Halloween", "alt": "Celebración de Halloween — fotografía 1"},
 {"src": "/gallery/halloween/20261030_074140.jpg", "category": "Halloween", "alt": "Celebración de Halloween — fotografía 2"},
 {"src": "/gallery/halloween/20261030_074654.jpg", "category": "Halloween", "alt": "Celebración de Halloween — fotografía 3"},
