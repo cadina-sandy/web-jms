@@ -6,8 +6,31 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 // Fiesta de la Chilenidad conserva una sola categoría en los filtros.
 // Organización de origen: A (1° a 8° y Pre-kínder), B (1° a 8° y Kínder),
 // Equipo y Stand. Todas sus fotos usan la categoría «Fiesta de la Chilenidad».
-const categories = ['Todas', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'visita a bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
+const categories = ['Todas', 'Encuentro teatral', 'English festival 2026', 'Teatro con el 5°', 'Cuecazo', 'visita a bomberos', 'Día del Autismo', 'Día del Libro', 'Día Saludable', 'Día del Síndrome de Down', 'Fiesta de la Chilenidad', 'Campeonato de Ajedrez 2026', 'Festival de Música', 'Campeonato Tenis de Mesa 2026', 'Campeonato de Voleibol 2026'];
 const photos: { src: string; category: string; alt: string; video?: string }[] = [
+{"src": "/gallery/encuentro-teatral/20261123_111430.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 1"},
+{"src": "/gallery/encuentro-teatral/20261123_094646.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 2"},
+{"src": "/gallery/encuentro-teatral/20261123_094813.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 3"},
+{"src": "/gallery/encuentro-teatral/20261123_094931.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 4"},
+{"src": "/gallery/encuentro-teatral/20261123_095406.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 5"},
+{"src": "/gallery/encuentro-teatral/20261123_100631.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 6"},
+{"src": "/gallery/encuentro-teatral/20261123_100759.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 7"},
+{"src": "/gallery/encuentro-teatral/20261123_100834.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 8"},
+{"src": "/gallery/encuentro-teatral/20261123_102919.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 9"},
+{"src": "/gallery/encuentro-teatral/20261123_110721.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 10"},
+{"src": "/gallery/encuentro-teatral/20261123_111202.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 11"},
+{"src": "/gallery/encuentro-teatral/20261123_111411.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 12"},
+{"src": "/gallery/encuentro-teatral/20261123_111529.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 13"},
+{"src": "/gallery/encuentro-teatral/20261123_125418.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 14"},
+{"src": "/gallery/encuentro-teatral/20261123_125737.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 15"},
+{"src": "/gallery/encuentro-teatral/20261124_104109.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 16"},
+{"src": "/gallery/encuentro-teatral/20261124_104144.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 17"},
+{"src": "/gallery/encuentro-teatral/20261124_104423.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 18"},
+{"src": "/gallery/encuentro-teatral/20261124_124856.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 19"},
+{"src": "/gallery/encuentro-teatral/20261124_130746.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — fotografía 20"},
+{"src": "/gallery/encuentro-teatral/20261123_125506-poster.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — video 1", "video": "/gallery/encuentro-teatral/20261123_125506.mp4"},
+{"src": "/gallery/encuentro-teatral/20261123_125530-poster.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — video 2", "video": "/gallery/encuentro-teatral/20261123_125530.mp4"},
+{"src": "/gallery/encuentro-teatral/20261123_125633-poster.jpg", "category": "Encuentro teatral", "alt": "Encuentro teatral — video 3", "video": "/gallery/encuentro-teatral/20261123_125633.mp4"},
 {"src":"/gallery/english-festival-2026/20260730_110317.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
 {"src":"/gallery/english-festival-2026/20260730_110843.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
 {"src":"/gallery/english-festival-2026/20260730_100159.jpg","category":"English festival 2026","alt":"Presentaciones y comunidad escolar en el English festival 2026"},
