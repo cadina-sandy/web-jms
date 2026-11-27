@@ -1,3 +1,4 @@
+import { editHistoryText } from '@/lib/matricula/history-details';
 import { enrollmentClickCounts } from '@/lib/matricula/click-stats';
 import { authorizeStaff } from '@/lib/matricula/access';
 import { ensureHistoryStorage, recordHistory, historyTable, changeEnrollmentState } from '@/lib/matricula/history';
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
       ORDER BY occurred_at DESC,event_id DESC LIMIT $5 OFFSET $6`, [from || null, to || null, action, id || null, mode === 'csv' ? 10001 : 51, mode === 'csv' ? 0 : offset]);
     if (mode === 'csv') {
       if (rows.length > 10000) return Response.json({ error: 'Más de 10000 eventos. Acota el rango de fechas.' }, { status: 413, headers });
-      const output = rows.map(row => ({ ...row, occurred_at: new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'short', timeStyle: 'medium' }).format(new Date(row.occurred_at)), action: historyActions[row.action as HistoryAction] ?? row.action, actor: historyActors[String(row.actor)] ?? row.actor, record_ids: (row.record_ids as string[]).join(' | '), details: [Array.isArray(row.details?.numbers) && row.details.numbers.length ? `Fichas: ${row.details.numbers.join(', ')}` : '', row.details?.count != null ? `Cantidad: ${row.details.count}` : '', row.details?.course ? `Curso: ${row.details.course}` : ''].filter(Boolean).join(' · ') }));
+      const output = rows.map(row => ({ ...row, occurred_at: new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'short', timeStyle: 'medium' }).format(new Date(row.occurred_at)), action: historyActions[row.action as HistoryAction] ?? row.action, actor: historyActors[String(row.actor)] ?? row.actor, record_ids: (row.record_ids as string[]).join(' | '), details: [Array.isArray(row.details?.numbers) && row.details.numbers.length ? `Fichas: ${row.details.numbers.join(', ')}` : '', row.details?.count != null ? `Cantidad: ${row.details.count}` : '', row.details?.course ? `Curso: ${row.details.course}` : '', editHistoryText(row.details||{})].filter(Boolean).join(' · ') }));
       await recordHistory('exportar_historial', 'super', [], { count: rows.length });
       return new Response(csv(['event_id','occurred_at','action','actor','record_ids','details'], output, { event_id: 'Evento', occurred_at: 'Fecha y hora', action: 'Acción', actor: 'Perfil de acceso', record_ids: 'Comprobantes', details: 'Detalles' }), { headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="historial-matriculas.csv"' } });
     }

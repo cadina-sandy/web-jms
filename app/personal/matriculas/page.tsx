@@ -1,5 +1,6 @@
 'use client';
 
+import EnrollmentEditor from './EnrollmentEditor';
 import { Caveat } from 'next/font/google';
 import { useEffect, useRef, useState, type FormEvent, type Ref } from 'react';
 import { enrollmentCourses } from '@/lib/matricula/fields';
@@ -12,8 +13,9 @@ export default function ExportMatriculas() {
   const [token, setToken] = useState('');
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | 'select' | 'print' | 'word' | null>(null);
+  const [busy, setBusy] = useState<'list' | 'record' | 'csv' | 'delete' | 'select' | 'print' | 'word' | 'edit' | null>(null);
   const [listing, setListing] = useState<{ records: EnrollmentSummary[]; hasMore: boolean; offset: number } | null>(null);
+  const [editing, setEditing] = useState<{record:EnrollmentRecord;version:string}|null>(null);
   const [record, setRecord] = useState<EnrollmentRecord | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [allMatchingSelected, setAllMatchingSelected] = useState(false);
@@ -52,12 +54,13 @@ export default function ExportMatriculas() {
       setAllMatchingSelected(false);
       setPrintRecords([]);
     }
+    setEditing(null);
     setListing(null);
     setRecord(null);
     setMessage('');
   }
 
-  async function request(action: 'consultar' | 'exportar' | 'eliminar', body: object) {
+  async function request(action: 'consultar' | 'exportar' | 'eliminar' | 'editar', body: object) {
     const response = await fetch(`/api/matriculas/${action}/`, {
       method: action === 'eliminar' ? 'DELETE' : 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -101,6 +104,18 @@ export default function ExportMatriculas() {
     } finally {
       setBusy(null);
     }
+  }
+
+  async function editRecord(id:string) {
+    if(!canManage||busy||!token)return;setBusy('record');setMessage('');
+    try {const response=await request('editar',{id});const result=await response.json() as {record:EnrollmentRecord;version:string};setRecord(null);setEditing(result);setBusy('edit');}
+    catch(error){setMessage(error instanceof Error?error.message:'No se pudo abrir la edición.');setBusy(null);}
+  }
+  async function editedRecordSaved(id:string) {
+    setEditing(null);setListing(null);setRecord(null);setMessage('Cambios guardados y registrados en el historial de Super sayayin.');
+    try {const response=await request('consultar',{id});const result=await response.json() as {record:EnrollmentRecord};setRecord(result.record);}
+    catch {setMessage('Los cambios se guardaron. Pulsa «Ver fichas» para consultar la versión actual.');}
+    finally {setBusy(null);}
   }
 
   async function deleteRecord(row: EnrollmentSummary) {
@@ -246,7 +261,7 @@ export default function ExportMatriculas() {
 
       {role === 'viewer' && <p role="status">Acceso de solo lectura. Puedes buscar y ver fichas; la selección, impresión, descarga y eliminación están desactivadas.</p>}
 
-      {listing && !record && (
+      {listing && !record && !editing && (
         <section className="enrollment-admin-results" aria-labelledby="saved-enrollments-title">
           <h2 id="saved-enrollments-title">Fichas guardadas</h2>
           {listing.records.length > 0 && (
@@ -282,6 +297,7 @@ export default function ExportMatriculas() {
                   </label>
                   <div className="enrollment-row-actions">
                     <button type="button" disabled={!!busy} aria-label={`Ver ficha de ${enrollmentName(row)}`} onClick={() => loadRecord(row.id)}>Ver ficha</button>
+                    <button className="enrollment-edit" type="button" disabled={!canManage || !!busy} aria-label={`Editar ficha de ${enrollmentName(row)}`} onClick={() => editRecord(row.id)}>Editar ficha</button>
                     <button className="enrollment-delete" type="button" disabled={!canManage || !!busy}
                       aria-label={`Enviar a papelera la ficha de ${enrollmentName(row)}`} title="Enviar ficha a la papelera"
                       onClick={() => deleteRecord(row)}>
@@ -303,7 +319,8 @@ export default function ExportMatriculas() {
         </section>
       )}
 
-      {record && <EnrollmentDetails record={record} headingRef={recordHeading} onBack={() => setRecord(null)} />}
+      {editing && <EnrollmentEditor key={editing.record.id} record={editing.record} version={editing.version} token={token} onSaved={editedRecordSaved} onCancel={() => {setEditing(null);setBusy(null);}} />}
+      {record && !editing && <EnrollmentDetails record={record} headingRef={recordHeading} onBack={() => {setRecord(null);void loadList(listing?.offset||0);}} />}
       <section className="enrollment-print" aria-label="Fichas para imprimir">
         {printRecords.map(item => <EnrollmentDetails key={item.id} record={item} />)}
       </section>

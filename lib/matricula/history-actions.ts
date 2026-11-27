@@ -1,4 +1,5 @@
 export const historyActions = {
+  editar: 'Ficha editada', abrir_edicion: 'Edición de ficha abierta',
   crear: 'Ficha creada', listar: 'Consulta del listado', ver: 'Ficha consultada', preparar_impresion: 'Preparación de impresión',
   exportar_csv: 'Descarga CSV', exportar_word: 'Descarga Word', enviar_papelera: 'Ficha enviada a papelera',
   restaurar: 'Ficha restaurada', borrar_definitivo: 'Borrado definitivo confirmado', direccion_verificada: 'Dirección verificada',

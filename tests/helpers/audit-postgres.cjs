@@ -11,9 +11,12 @@ async function main(){
  const history=load('lib/matricula/history.ts',{'server-only':{},'./db':db,'./target':target,'./history-schema':hs,'./numbering':numbering});
  const access=load('lib/matricula/access.ts',{'server-only':{}}),labels=load('lib/matricula/labels.ts',{'./fields':fields}),view=load('lib/matricula/view.ts',{'./fields':fields,'./labels':labels}),actions=load('lib/matricula/history-actions.ts');
  const clicks=load('lib/matricula/click-stats.ts',{'server-only':{},'./db':db,'./target':target,'./click-events':load('lib/matricula/click-events.ts')});
- const deps={'@/lib/matricula/click-stats':clicks,'@/lib/matricula/click-events':load('lib/matricula/click-events.ts'),'@/lib/matricula/access':access,'@/lib/matricula/db':db,'@/lib/matricula/fields':fields,'@/lib/matricula/target':target,'@/lib/matricula/view':view,'@/lib/matricula/history':history,'@/lib/matricula/history-actions':actions,'@/lib/matricula/labels':labels,'@/lib/matricula/csv':load('lib/matricula/csv.ts'),'@/lib/matricula/selection':load('lib/matricula/selection.ts'),'@/lib/matricula/word':{enrollmentWord:async()=>Buffer.from('word-ficticio')}};
+ const editModel=load('lib/matricula/edit.ts',{'./fields':fields,'./validation':load('lib/matricula/validation.ts',{'./fields':fields})});
+ const editDetails=load('lib/matricula/history-details.ts',{'./labels':labels});
+ const deps={'@/lib/matricula/edit':editModel,'@/lib/matricula/history-details':editDetails,'@/lib/matricula/click-stats':clicks,'@/lib/matricula/click-events':load('lib/matricula/click-events.ts'),'@/lib/matricula/access':access,'@/lib/matricula/db':db,'@/lib/matricula/fields':fields,'@/lib/matricula/target':target,'@/lib/matricula/view':view,'@/lib/matricula/history':history,'@/lib/matricula/history-actions':actions,'@/lib/matricula/labels':labels,'@/lib/matricula/csv':load('lib/matricula/csv.ts'),'@/lib/matricula/selection':load('lib/matricula/selection.ts'),'@/lib/matricula/word':{enrollmentWord:async()=>Buffer.from('word-ficticio')}};
  const consult=load('app/api/matriculas/consultar/route.ts',deps).POST,exp=load('app/api/matriculas/exportar/route.ts',deps).POST,del=load('app/api/matriculas/eliminar/route.ts',deps).DELETE,admin=load('app/api/matriculas/historial/route.ts',deps);
  const req=(body,token='admin-ficticio')=>new Request('https://colegio.invalid/api/',{method:'POST',headers:{origin:'https://colegio.invalid',authorization:'Bearer '+token,'content-type':'application/json'},body:JSON.stringify(body)});
+ const edit=load('app/api/matriculas/editar/route.ts',deps);
  const clickPost=load('app/api/matriculas/eventos/route.ts',deps).POST;
  const id='11111111-1111-4111-8111-111111111111',id2='22222222-2222-4222-8222-222222222222';
  const fixture=load('tests/fixture.ts').fixture;
@@ -45,6 +48,36 @@ async function main(){
  assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[id2])).rows[0].numero_ficha),'1');
  assert.equal(String((await pg.query(`SELECT numero_ficha FROM ${table} WHERE id=$1`,[id])).rows[0].numero_ficha),'2');
  assert.equal((await pg.query(`SELECT count(*)::int AS n FROM ${ht} WHERE action='crear'`)).rows[0].n,1);
+ // Existing registration metadata is preserved; reauthentication and a declared editor are mandatory.
+ assert.equal((await edit.POST(req({id},'lector-ficticio'))).status,403);
+ assert.equal((await edit.PATCH(req({id},'lector-ficticio'))).status,403);
+ let envelope=await (await edit.POST(req({id}))).json();
+ const oldMeta=(await pg.query(`SELECT created_at,numero_ficha,"fechaMatricula","funcionarioMatricula",receipt_sent_at,receipt_attempted_at FROM ${table} WHERE id=$1`,[id])).rows[0];
+ const editBody={id,version:envelope.version,editor:'Persona de prueba',confirmationPassword:'admin-ficticio',changes:{apoderadoCorreoDominioOtro:'corregido.invalid'}};
+ assert.equal((await edit.PATCH(req({...editBody,confirmationPassword:'incorrecta'}))).status,403);
+ assert.equal((await edit.PATCH(req({...editBody,editor:''}))).status,400);
+ for(const field of ['fechaMatricula','id','numero_ficha','created_at','funcionarioMatricula','comprobacionDireccion']) assert.equal((await edit.PATCH(req({...editBody,changes:{[field]:'alteracion'}}))).status,400);
+ assert.equal((await edit.PATCH(req({...editBody,changes:{apoderadoCorreoDominioOtro:'dominio-invalido'}}))).status,400);
+ assert.equal((await edit.PATCH(req(editBody))).status,200);
+ const newMeta=(await pg.query(`SELECT created_at,numero_ficha,"fechaMatricula","funcionarioMatricula",receipt_sent_at,receipt_attempted_at FROM ${table} WHERE id=$1`,[id])).rows[0];assert.deepEqual(newMeta,oldMeta);
+ const editedEvent=(await pg.query(`SELECT details FROM ${ht} WHERE action='editar'`)).rows[0].details;
+ assert.equal(editedEvent.editor,'Persona de prueba');assert.equal(editedEvent.changes[0].before,'example.invalid');assert.equal(editedEvent.changes[0].after,'corregido.invalid');assert.ok(!JSON.stringify(editedEvent).includes('admin-ficticio'));
+ assert.equal((await edit.PATCH(req({...editBody,changes:{direccion:'No debe sobreescribir'}}))).status,409,'stale edit cannot overwrite current ficha');
+ envelope=await (await edit.POST(req({id}))).json();
+ assert.equal((await edit.PATCH(req({...editBody,version:envelope.version,changes:{}}))).status,400);
+ // A history failure rolls back the edit itself.
+ await pg.exec(`ALTER TABLE ${ht} ADD CONSTRAINT test_fail_edit CHECK (action <> 'editar') NOT VALID`);
+ assert.equal((await edit.PATCH(req({...editBody,version:envelope.version,changes:{apoderadoCorreoDominioOtro:'no-guardar.invalid'}}))).status,503);
+ assert.equal((await pg.query(`SELECT "apoderadoCorreoDominioOtro" AS value FROM ${table} WHERE id=$1`,[id])).rows[0].value,'corregido.invalid');
+ await pg.exec(`ALTER TABLE ${ht} DROP CONSTRAINT test_fail_edit`);
+ // Super administration must also repeat its own credential; a different valid role key is rejected.
+ envelope=await (await edit.POST(req({id},'super-ficticio'))).json();
+ assert.equal((await edit.PATCH(req({...editBody,version:envelope.version,confirmationPassword:'admin-ficticio'},'super-ficticio'))).status,403);
+ assert.equal((await edit.PATCH(req({...editBody,version:envelope.version,confirmationPassword:'super-ficticio',changes:{blockOTorre:'Prueba ficticia'}},'super-ficticio'))).status,200);
+ // Legacy incomplete records can receive a targeted correction without changing unrelated data.
+ const legacy=await (await edit.POST(req({id:id2}))).json();
+ assert.equal((await edit.PATCH(req({id:id2,version:legacy.version,editor:'Persona de prueba',confirmationPassword:'admin-ficticio',changes:{apoderadoCorreoUsuario:'legado',apoderadoCorreoDominio:'otra',apoderadoCorreoDominioOtro:'example.invalid'}}))).status,200);
+ const historyCsv=await (await admin.POST(req({mode:'csv'},'super-ficticio'))).text();assert.match(historyCsv,/Persona de prueba/);assert.match(historyCsv,/corregido.invalid/);
  await db.markAddressFound(id);await db.markReceiptSent(id);
  assert.equal((await consult(req({id}))).status,200);
  const csvResponse=await exp(req({ids:[id],format:'csv'}));assert.equal(csvResponse.status,200);assert.ok((await csvResponse.text()).includes('N° de ficha'));
@@ -53,6 +86,7 @@ async function main(){
  assert.equal((await consult(req({ids:[id]}))).status,200);
  assert.equal((await del(req({id},'lector-ficticio'))).status,403);
  assert.equal((await del(req({id}))).status,200);
+ assert.equal((await edit.POST(req({id}))).status,404);assert.equal((await edit.PATCH(req({...editBody,version:envelope.version}))).status,404);
  const soft=(await pg.query(`SELECT nombres,deleted_at FROM ${table} WHERE id=$1`,[id])).rows[0];assert.ok(soft.deleted_at);assert.equal(soft.nombres,fixture.nombres);
  assert.equal((await consult(req({id}))).status,404);
  const list=await (await consult(req({}))).json();assert.equal(list.records.length,1);assert.equal(list.records[0].id,id2);

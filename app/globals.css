@@ -1125,3 +1125,26 @@
   html:has(#pasos-matricula) { scroll-behavior: auto; }
   .reservation-steps *, .jms-help * { transition: none !important; animation: none !important; }
 }
+
+.enrollment-row-actions .enrollment-edit { background:#a32937; color:#fff; border-color:#a32937; }
+.enrollment-row-actions .enrollment-edit:hover:not(:disabled) { background:#82212c; }
+.enrollment-editor { margin-top:32px; }
+.enrollment-editor h2 { scroll-margin-top:110px; }
+.enrollment-editor-fields { margin:0; padding:0; border:0; min-width:0; }
+.enrollment-editor details { margin:16px 0; padding:16px; border:1px solid #c4d3e7; border-radius:8px; }
+.enrollment-editor summary { min-height:44px; padding:10px 0; font-size:1.1rem; font-weight:700; cursor:pointer; }
+.enrollment-editor-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; margin:16px 0; }
+.enrollment-editor label { display:flex; flex-direction:column; gap:8px; font-weight:600; min-width:0; }
+.enrollment-editor :is(input,select) { width:100%; min-width:0; min-height:48px; padding:12px; border:1px solid #66758a; border-radius:4px; color:#101a33; background:#fff; font:inherit; font-weight:400; font-size:16px; }
+.enrollment-editor :is(button,input,select,summary):focus-visible { outline:3px solid #0c2258; outline-offset:3px; }
+.enrollment-editor-error { color:#a71919; font-weight:500; }
+.enrollment-editor [aria-invalid=true] { border:2px solid #a71919; }
+.enrollment-editor-confirm { margin-top:28px; padding:20px; border:1px solid #c4d3e7; border-radius:8px; background:#f5f9ff; }
+.enrollment-editor-scroll { max-width:100%; overflow:auto; }
+.enrollment-editor table { width:100%; border-collapse:collapse; text-align:left; }
+.enrollment-editor :is(th,td) { padding:10px; border-bottom:1px solid #dce6f2; overflow-wrap:anywhere; }
+.super-edit-changes { margin:8px 0; }
+.super-edit-changes dl { display:block; }
+.super-edit-changes dt { font-weight:600; margin-top:10px; }
+.super-edit-changes dd { margin:4px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:680px) { .enrollment-editor-grid { grid-template-columns:1fr; } .enrollment-editor :is(details,.enrollment-editor-confirm) { padding:14px; } .enrollment-row-actions { flex-wrap:wrap; } }
