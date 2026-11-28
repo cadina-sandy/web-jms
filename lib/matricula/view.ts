@@ -75,7 +75,7 @@ export function enrollmentSections(record: EnrollmentRecord) {
       const value = record[field]?.trim();
       if (!value) return [];
       const label = friendlyLabels[field] ?? labels[field].replace(/^(Estudiante|Apoderado|Suplente|Imagen):\s*/, '');
-      return [{ key: field, label, value: Object.hasOwn(displayValues, value) ? displayValues[value] : enrollmentDate(value) }];
+      return [{ key: field, label: label.replace(/^\p{L}/u, letter => letter.toLocaleUpperCase('es-CL')), value: Object.hasOwn(displayValues, value) ? displayValues[value] : enrollmentDate(value) }];
     });
     return { title, entries };
   }).filter(section => section.entries.length > 0);
